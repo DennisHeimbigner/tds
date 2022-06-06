@@ -47,7 +47,7 @@ public class DapRequest {
 
   static public final String CONSTRAINTTAG = "dap4.ce";
 
-  static public final ChecksumMode DEFAULTCSUM = ChecksumMode.DAP;
+  static public final ChecksumMode DEFAULTCSUM = ChecksumMode.NONE;
 
   //////////////////////////////////////////////////
   // Instance variables
@@ -234,13 +234,11 @@ public class DapRequest {
         this.order = (oz != 0 ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN);
     }
 
-    // Ditto for no checksum
+    // Ditto for checksum
     p = queryLookup(Dap4Util.DAP4CSUMTAG);
     if (p != null) {
       this.checksummode = ChecksumMode.modeFor(p);
     }
-    if (this.checksummode == null)
-      this.checksummode = DEFAULTCSUM;
 
     if (DEBUG) {
       DapLog.debug("DapRequest: controllerpath =" + this.controllerpath);

@@ -225,7 +225,7 @@ public class SerialWriter {
 
   public void endVariable() throws IOException {
     depth--;
-    if (depth == 0 && this.checksummode.enabled(ChecksumMode.DAP)) {
+    if (depth == 0 && this.checksummode == ChecksumMode.TRUE) {
       long crc = this.checksum.getValue(); // get the digest value
       crc = (crc & 0x00000000FFFFFFFFL); /* crc is 32 bits */
       crcbuffer.clear();
@@ -296,7 +296,7 @@ public class SerialWriter {
    */
   public void writeBytes(byte[] bytes, int len) throws IOException {
     outputBytes(bytes, 0, len);
-    if (this.checksummode.enabled(ChecksumMode.DAP)) {
+    if (this.checksummode == ChecksumMode.TRUE) {
       this.checksum.update(bytes, 0, len);
       if (DUMPCSUM) {
         System.err.print("SSS ");
