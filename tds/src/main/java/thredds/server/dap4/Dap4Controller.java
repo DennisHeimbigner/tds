@@ -45,10 +45,10 @@ public class Dap4Controller extends DapController {
   static class Dap4Factory extends DSPFactory {
 
     public Dap4Factory() {
-      // For TDS, we only need to register one DSP type: ThreddsDSP.
+      // For TDS, we only need to register one DSP type: CDMDSP.
       // This is because we will always serve only NetcdfFile objects.
       // See D4TSServlet for a multiple registration case.
-      DapCache.dspregistry.register(ThreddsDSP.class, DSPRegistry.LAST);
+      DapCache.dspregistry.register(CDMDSP.class, DSPRegistry.LAST);
     }
 
   }

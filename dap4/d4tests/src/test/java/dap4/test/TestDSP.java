@@ -8,7 +8,6 @@ import dap4.dap4lib.DMRPrinter;
 import dap4.dap4lib.DSPPrinter;
 import dap4.dap4lib.FileDSP;
 import dap4.dap4lib.HttpDSP;
-import dap4.dap4lib.netcdf.Nc4DSP;
 import dap4.servlet.DapCache;
 import dap4.servlet.SynDSP;
 import org.junit.Assert;
@@ -32,10 +31,8 @@ import java.util.List;
  * CDMDSP: tested elsewhere (TestServlet)
  * HttpDSP: tested elsewhere (TestCDMClient)
  * FileDSP: tested here
- * Nc4DSP: tested here
  * SynDSP: tested here
  * D4DSP: tested because superclass of FileDSP, HttpDSP, and SynDSP
- * ThreddsDSP: not directly tested anywhere yet
  */
 public class TestDSP extends DapTestCommon {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -151,9 +148,6 @@ public class TestDSP extends DapTestCommon {
           dsp = new FileDSP();
         } else if (".syn".equals(ext)) {
           dsp = new SynDSP();
-        }
-        if (".nc".equals(ext)) {
-          dsp = new Nc4DSP();
         }
       } else if ("http".equals(proto) || "https".equals(url.getProtocol())) {
         dsp = new HttpDSP();

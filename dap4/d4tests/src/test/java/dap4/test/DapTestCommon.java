@@ -440,11 +440,11 @@ abstract public class DapTestCommon extends TdsUnitTestCommon {
     TdsRequestedDataset.setDatasetManager(new DatasetManager());
   }
 
-
   static protected void testSetup() {
     DapController.TESTING = true;
     DapCache.dspregistry.register(FileDSP.class, DSPRegistry.FIRST);
     DapCache.dspregistry.register(SynDSP.class, DSPRegistry.FIRST);
+    DapCache.dspregistry.register(CDMDSP.class, DSPRegistry.LAST);
     try {
       // Always prefer Nc4Iosp over HDF5
       NetcdfFile.iospDeRegister(NC4IOSP);
