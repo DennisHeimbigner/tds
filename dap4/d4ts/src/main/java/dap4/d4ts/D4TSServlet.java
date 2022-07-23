@@ -11,7 +11,7 @@ import dap4.core.util.DapException;
 import dap4.core.util.DapUtil;
 import dap4.dap4lib.DapCodes;
 import dap4.dap4lib.DapLog;
-import dap4.dap4lib.FileDSP;
+import dap4.dap4lib.RawDSP;
 import dap4.servlet.*;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -47,8 +47,7 @@ public class D4TSServlet extends DapController {
       // in event that two or more dsps can match a given file
       // Only used in server
       DapCache.dspregistry.register(CDMDSP.class, DSPRegistry.LAST);
-      DapCache.dspregistry.register(SynDSP.class, DSPRegistry.LAST);
-      DapCache.dspregistry.register(FileDSP.class, DSPRegistry.LAST);
+      DapCache.dspregistry.register(RawDSP.class, DSPRegistry.LAST);
     }
 
   }

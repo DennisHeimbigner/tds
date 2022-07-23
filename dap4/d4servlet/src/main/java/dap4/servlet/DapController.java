@@ -6,14 +6,10 @@
 
 package dap4.servlet;
 
-import dap4.core.DMRPrinter;
 import dap4.core.ce.CEConstraint;
 import dap4.core.data.ChecksumMode;
 import dap4.core.data.DSP;
-import dap4.core.dmr.DapAttribute;
-import dap4.core.dmr.DapDataset;
-import dap4.core.dmr.DapType;
-import dap4.core.dmr.ErrorResponse;
+import dap4.core.dmr.*;
 import dap4.core.util.*;
 import dap4.dap4lib.*;
 import javax.servlet.ServletException;
