@@ -9,6 +9,8 @@ import dap4.core.dmr.*;
 import dap4.core.util.*;
 import dap4.core.util.Index;
 import dap4.dap4lib.AbstractCursor;
+import dap4.dap4lib.cdm.CDMTypeFcns;
+import dap4.dap4lib.cdm.CDMUtil;
 import ucar.ma2.*;
 import java.util.List;
 

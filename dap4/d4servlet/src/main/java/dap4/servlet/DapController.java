@@ -6,6 +6,7 @@
 
 package dap4.servlet;
 
+import dap4.core.DMRPrinter;
 import dap4.core.ce.CEConstraint;
 import dap4.core.data.ChecksumMode;
 import dap4.core.data.DSP;
