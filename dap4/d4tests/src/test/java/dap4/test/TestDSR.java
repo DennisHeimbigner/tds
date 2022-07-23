@@ -4,7 +4,6 @@ package dap4.test;
 import dap4.core.data.DSPRegistry;
 import dap4.dap4lib.FileDSP;
 import dap4.servlet.DapCache;
-import dap4.servlet.Generator;
 import dap4.servlet.SynDSP;
 import org.junit.Assert;
 import org.junit.Before;
@@ -59,8 +58,6 @@ public class TestDSR extends DapTestCommon {
     testSetup();
     DapCache.dspregistry.register(FileDSP.class, DSPRegistry.FIRST);
     DapCache.dspregistry.register(SynDSP.class, DSPRegistry.FIRST);
-    if (prop_ascii)
-      Generator.setASCII(true);
     this.resourceroot = getResourceRoot();
     // this.datasetpath = getResourceRoot();
   }

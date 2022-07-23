@@ -45,7 +45,7 @@ ext {
   ciWorkspace = System.getenv('GITHUB_WORKSPACE')
   if (ciWorkspace != null) {
     ciWorkspace = ciWorkspace.replace('/', '')
-    skipDap4 = ciWorkspace != null && ciWorkspace.endsWith('netcdf-java')
+//    skipDap4 = ciWorkspace != null && ciWorkspace.endsWith('netcdf-java')
   }
   if (skipDap4) {
     logger.warn 'Skipping dap4 tests when running against netCDF-Java PRs.'

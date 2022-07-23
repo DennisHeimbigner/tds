@@ -9,6 +9,7 @@ package dap4.servlet;
 import dap4.core.ce.CEConstraint;
 import dap4.core.data.ChecksumMode;
 import dap4.core.data.DSP;
+import dap4.core.dmr.DMRPrinter;
 import dap4.core.dmr.DapAttribute;
 import dap4.core.dmr.DapDataset;
 import dap4.core.dmr.DapType;

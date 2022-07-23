@@ -5,8 +5,8 @@
 
 package dap4.servlet;
 
-import dap4.cdm.CDMTypeFcns;
-import dap4.cdm.CDMUtil;
+import dap4.dap4lib.cdm.CDMTypeFcns;
+import dap4.dap4lib.cdm.CDMUtil;
 import dap4.cdm.NodeMap;
 import dap4.core.data.DataCursor;
 import dap4.core.dmr.*;

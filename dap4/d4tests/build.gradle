@@ -14,9 +14,9 @@ dependencies {
     exclude group: 'org.apache.logging.log4j'
   }
 
-  testCompile 'edu.ucar:d4cdm'
-  testCompile 'edu.ucar:cdm-core'
-  testCompile 'edu.ucar:httpservices'
+  testCompile 'edu.ucar:d4lib'
+//  testCompile 'edu.ucar:cdm-core'
+//  testCompile 'edu.ucar:httpservices'
 
   testCompile(project(':tds')) {
     // depending on TDS does not seem right. Need to break out the parts that are important

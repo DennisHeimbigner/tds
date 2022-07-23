@@ -10,7 +10,6 @@ import dap4.core.util.DapDump;
 import dap4.dap4lib.ChunkInputStream;
 import dap4.dap4lib.RequestMode;
 import dap4.servlet.DapCache;
-import dap4.servlet.Generator;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -180,8 +179,6 @@ public class TestServlet extends DapTestCommon {
       this.mockMvc = mvcbuilder.build();
     }
     testSetup();
-    if (prop_ascii)
-      Generator.setASCII(true);
     TestCase.setRoots(canonjoin(getResourceRoot(), TESTINPUTDIR), canonjoin(getResourceRoot(), BASELINEDIR),
         canonjoin(getResourceRoot(), GENERATEDIR));
     defineAllTestcases();

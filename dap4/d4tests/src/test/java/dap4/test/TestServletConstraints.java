@@ -8,7 +8,6 @@ import dap4.dap4lib.ChunkInputStream;
 import dap4.dap4lib.FileDSP;
 import dap4.dap4lib.RequestMode;
 import dap4.servlet.DapCache;
-import dap4.servlet.Generator;
 import dap4.servlet.SynDSP;
 import org.junit.After;
 import org.junit.Assert;
@@ -163,8 +162,6 @@ public class TestServletConstraints extends DapTestCommon {
     mvcbuilder.setValidator(new TestServlet.NullValidator());
     this.mockMvc = mvcbuilder.build();
     testSetup();
-    if (prop_ascii)
-      Generator.setASCII(true);
     TestCase.setRoots(canonjoin(getResourceRoot(), TESTINPUTDIR), canonjoin(getResourceRoot(), BASELINEDIR),
         canonjoin(getResourceRoot(), GENERATEDIR));
     defineAllTestcases();
