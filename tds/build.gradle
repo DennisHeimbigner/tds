@@ -31,7 +31,6 @@ dependencies {
   // DAP4 Dependencies (technically forward)
   compile 'edu.ucar:d4core'
   compile 'edu.ucar:d4lib'
-//  compile 'edu.ucar:d4cdm'
 
   compile project(':dap4:dap4-servlet')
 
