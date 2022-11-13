@@ -30,7 +30,6 @@ import thredds.server.ncss.view.dsg.DsgSubsetWriter;
 import thredds.server.ncss.view.dsg.DsgSubsetWriterFactory;
 import thredds.util.Constants;
 import thredds.util.ContentType;
-import thredds.util.TdsPathUtils;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.ft.FeatureDatasetPoint;
 import ucar.nc2.ft2.coverage.*;
@@ -105,9 +104,10 @@ public class NcssGridController extends AbstractNcssController {
 
   private void handleRequestGrid(HttpServletResponse res, NcssGridParamsBean params, String datasetPath,
       CoverageCollection gcd) throws IOException, NcssException, InvalidRangeException {
-    // Supported formats are netcdf3 (default) and netcdf4 (if available)
+    // Supported formats are netcdf3 (default) and netcdf4ext (not currently turned on in TdsInit), netcdf4 (turned
+    // on in TdsInit if C library is present)
     SupportedFormat sf = SupportedOperation.GRID_REQUEST.getSupportedFormat(params.getAccept());
-    NetcdfFileFormat version = (sf == SupportedFormat.NETCDF3) ? NetcdfFileFormat.NETCDF3 : NetcdfFileFormat.NETCDF4;
+    NetcdfFileFormat version = getNetcdfFileFormat(sf);
 
     // all variables have to have the same vertical axis if a vertical coordinate was set. LOOK can we relax this ?
     if (params.getVertCoord() != null && !checkVarsHaveSameVertAxis(gcd, params)) {
@@ -119,7 +119,7 @@ public class NcssGridController extends AbstractNcssController {
     File netcdfResult = makeCFNetcdfFile(gcd, responseFile, params, version);
 
     // filename download attachment
-    String suffix = TdsPathUtils.getSuffix(version);
+    String suffix = sf.getFileSuffix();
     int pos = datasetPath.lastIndexOf("/");
     String filename = (pos >= 0) ? datasetPath.substring(pos + 1) : datasetPath;
     if (!filename.endsWith(suffix)) {
@@ -140,6 +140,20 @@ public class NcssGridController extends AbstractNcssController {
     res.flushBuffer();
     res.getOutputStream().close();
     res.setStatus(HttpServletResponse.SC_OK);
+  }
+
+  private static NetcdfFileFormat getNetcdfFileFormat(SupportedFormat supportedFormat) {
+    switch (supportedFormat) {
+      case NETCDF3:
+        return NetcdfFileFormat.NETCDF3;
+      case NETCDF4:
+        return NetcdfFileFormat.NETCDF4_CLASSIC;
+      case NETCDF4EXT:
+        return NetcdfFileFormat.NETCDF4;
+      default:
+        throw new UnsupportedOperationException(
+            "Format '" + supportedFormat.getFormatName() + "' not currently supported for writing NetCDF files.");
+    }
   }
 
   private File makeCFNetcdfFile(CoverageCollection gcd, String responseFilename, NcssGridParamsBean params,
