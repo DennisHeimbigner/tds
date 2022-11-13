@@ -402,6 +402,8 @@ class DatasetContext {
 
   private String catUrl;
 
+  private String remoteCatUrl;
+
   private Map<String, Object> context;
 
   private List<Map<String, String>> documentation;
@@ -441,19 +443,35 @@ class DatasetContext {
     this.catName = ds.getParentCatalog().getName();
 
     String catUrl = ds.getCatalogUrl();
-    if (catUrl.indexOf('#') > 0)
-      catUrl = catUrl.substring(0, catUrl.lastIndexOf('#'));
-    catUrl = catUrl.replace("xml", "html");
-    // for direct datasets generated directly off of the root catalog, and maybe others, the base uri is missing
-    // the full server path. Try to do what we can.
-    if (catUrl.startsWith("/")) {
-      String reqUri = req.getRequestURL().toString();
-      if (reqUri.contains(req.getContextPath())) {
-        String baseUriString = reqUri.split(req.getContextPath())[0];
-        catUrl = baseUriString + catUrl;
+
+    // static strings
+    final String localPrefix = "file:";
+    final String contentDirString = "/thredds/";
+    final String contextPathStr = tdsContext.getContextPath() + "/";
+    final String catServiceStr = "/" + ServiceType.Catalog.name().toLowerCase(Locale.ROOT) + "/";
+
+    if (!isLocalCatalog) {
+      this.remoteCatUrl = catUrl;
+      this.catUrl = (contextPathStr + "remoteCatalogService?catalog=" + this.remoteCatUrl);
+    } else {
+      if (catUrl.indexOf('#') > 0) {
+        catUrl = catUrl.substring(0, catUrl.lastIndexOf('#'));
       }
+      catUrl = catUrl.replace("xml", "html");
+      // strip URL down to just the catalog URI path
+      if (catUrl.startsWith(localPrefix)) {
+        catUrl = catUrl.substring(catUrl.lastIndexOf(contentDirString) + contentDirString.length() - 1); // leave
+                                                                                                         // trailing
+                                                                                                         // slash
+      } else {
+        if (catUrl.lastIndexOf(catServiceStr) >= 0) {
+          catUrl = catUrl.substring(catUrl.lastIndexOf(catServiceStr) + catServiceStr.length() - 1); // leave trailing
+                                                                                                     // slash
+        }
+      }
+      // rebuild URI relative to contextPath/catalog/
+      this.catUrl = (contextPathStr + catServiceStr + catUrl).replace("//", "/");
     }
-    this.catUrl = catUrl;
 
     setContext();
     setDocumentation();
@@ -578,14 +596,6 @@ class DatasetContext {
           case NCML:
           case UDDC:
           case ISO:
-            catalogUrl = ds.getCatalogUrl();
-            datasetId = ds.getId();
-            if (catalogUrl != null && datasetId != null) {
-              if (catalogUrl.indexOf('#') > 0) {
-                catalogUrl = catalogUrl.substring(0, catalogUrl.lastIndexOf('#'));
-              }
-              queryString = "catalog=" + catalogUrl + "&dataset=" + datasetId;
-            }
             break;
           case NetcdfSubset:
             urlString = urlString + "/dataset.html";

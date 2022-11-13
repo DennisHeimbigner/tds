@@ -372,15 +372,9 @@ The various cache directory locations are all under `/{tds.content.root.path}/th
 
 We recommend that you use these defaults, by not specifying them in the `threddsConfig.xml` file.
 If you need to move the cache location, move all of them by using a symbolic file link in `${tds.content.root.path}/thredds/`.
-At Unidata, we move the entire content directory by creating a symbolic link:
-
-~~~bash
-cd {tomcat_home}
-ln -s /data/thredds/content content
-~~~
 
 These various caches at times may contain large amounts of data. 
-You should choose a location that will not fill up (especially if that location affects other important locations like `/opt`, `/home`, etc).
+You should choose a location that will not fill up (especially if that location affects other important locations like `/opt`, `/usr/local`, `/home`, etc).
 If you have a large disk for your data, that may be a good location for the cache directories.
 On unix-like machines, you can run `df` to get a listing of disks on your machine.
 The listing includes size and mount location.
@@ -448,23 +442,29 @@ The cache information is updated based on the `recheckEvery` field in the `joinE
 ### FeatureCollection Cache
 
 This is where persistent information is kept about FMRCs, in order to speed them up.
+This cache is currently implemented with [Chronicle Map](https://chronicle.software/open-hft/map/){:target="_blank"}.
 We recommend that you use the default settings, by not specifying this option.
 
 ~~~xml
- <FeatureCollection>
+<FeatureCollection>
   <dir>${tds.content.root.path}/thredds/cache/collection/</dir>
   <maxEntries>1000</maxEntries>
   <maxBloatFactor>1</maxBloatFactor>
 </FeatureCollection>
 ~~~
 
-* `dir`: location of Feature Collection cache, currently implemented
-  with [Chronicle Map](https://chronicle.software/open-hft/map/){:target="_blank"}.
+* `dir`: location of Feature Collection cache.
   If not otherwise set, the TDS will use the`${tds.content.root.path}/thredds/cache/collection/` directory.
   We recommend that you use this default, by not specifying a `FeatureCollection.dir` element.
-* `maxEntries`: the number of entries the cache is going to hold, _at most_.
+* `maxEntries`: the number of entries the cache is going to hold, _at most_. Each FMRC file is one "entry" in the cache. The default value for this is 1000.
+  If the `maxBloatFactor` is set to 1 (the default), then this value is the maximum possible number of FMRC files allowed.
+  If you have more than 1000 FMRC files, then we recommend increasing the `maxEntries` value to be the maximum number of FMRC files you expect to have.
   See [here](https://gerrit.googlesource.com/modules/cache-chroniclemap/+/HEAD/src/main/resources/Documentation/config.md#configuration-parameters) for more details.
-* `maxBloatFactor`: the maximun number of times the cache is allowed to grow in size. See [here](https://gerrit.googlesource.com/modules/cache-chroniclemap/+/HEAD/src/main/resources/Documentation/config.md#configuration-parameters) for more details.
+* `maxBloatFactor`: the maximum number of times the cache is allowed to grow in size.
+  The default value for this is 1 (the cache cannot grow in size).
+  If it is possible to have more FMRC files than your `maxEntries`, then this value should be increased.
+  It is strongly advised not to configure this value to more than 10, as the cache works progressively slower when the actual size grows far beyond the size configured in your `maxEntries`.
+  See [here](https://gerrit.googlesource.com/modules/cache-chroniclemap/+/HEAD/src/main/resources/Documentation/config.md#configuration-parameters) for more details.
 
 ### GRIB Index Redirection
 
