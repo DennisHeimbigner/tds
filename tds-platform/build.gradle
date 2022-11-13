@@ -75,6 +75,7 @@ dependencies {
     // dap4
     api 'edu.ucar:d4core'
     api 'edu.ucar:d4lib'
+    api 'edu.ucar:d4cdm'
     // defined in tds-testing-platform as well, but using api config
     runtime 'org.apache.logging.log4j:log4j-web'
 

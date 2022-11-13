@@ -2,21 +2,23 @@ apply from: "$rootDir/gradle/any/dependencies.gradle"
 apply from: "$rootDir/gradle/any/java-test-only.gradle"
 
 dependencies {
-  compile enforcedPlatform(project(':tds-platform'))
-  compile enforcedPlatform(project(':tds-testing-platform'))
+  implementation enforcedPlatform(project(':tds-platform'))
+  implementation enforcedPlatform(project(':tds-testing-platform'))
 
   // A lot of these dependencies should be in the testRuntime config, not testCompile.
-  testCompile 'edu.ucar:d4core'
-  testCompile 'edu.ucar:d4lib'
-  testCompile project(':dap4:dap4-servlet')
+  testImplementation 'edu.ucar:d4core'
+  testImplementation 'edu.ucar:d4lib'
+  testImplementation 'edu.ucar:d4cdm'
+  testImplementation project(':dap4:dap4-servlet')
 
-  testCompile(project(':dap4:d4ts')) {
+  testImplementation(project(':dap4:d4ts')) {
     exclude group: 'org.apache.logging.log4j'
   }
 
-  testCompile 'edu.ucar:d4lib'
-//  testCompile 'edu.ucar:cdm-core'
-//  testCompile 'edu.ucar:httpservices'
+  testImplementation 'edu.ucar:d4lib'
+  testImplementation 'edu.ucar:d4cdm'
+  testImplementation 'edu.ucar:cdm-core'
+  testImplementation 'edu.ucar:httpservices'
 
   testCompile(project(':tds')) {
     // depending on TDS does not seem right. Need to break out the parts that are important
@@ -28,25 +30,25 @@ dependencies {
     exclude group: 'net.sf.saxon', module: 'Saxon-HE'
   }
 
-  testCompile 'javax.servlet:javax.servlet-api'
-  testCompile 'org.slf4j:slf4j-api'
+  testImplementation 'javax.servlet:javax.servlet-api'
+  testImplementation 'org.slf4j:slf4j-api'
 
-  compile 'org.slf4j:slf4j-api'
+  implementation 'org.slf4j:slf4j-api'
   runtime 'org.apache.logging.log4j:log4j-slf4j-impl'
-  testCompile 'org.apache.logging.log4j:log4j-web'
+  testImplementation 'org.apache.logging.log4j:log4j-web'
   testRuntime 'ch.qos.logback:logback-classic'
 
   // Spring
-  compile 'org.springframework:spring-test'
-  compile 'org.springframework:spring-core'
-  compile 'org.springframework:spring-context'
-  compile 'org.springframework:spring-beans'
-  compile 'org.springframework:spring-web'
-  compile 'org.springframework:spring-webmvc'
+  implementation 'org.springframework:spring-test'
+  implementation 'org.springframework:spring-core'
+  implementation 'org.springframework:spring-context'
+  implementation 'org.springframework:spring-beans'
+  implementation 'org.springframework:spring-web'
+  implementation 'org.springframework:spring-webmvc'
 
-  testCompile 'junit:junit'
-  testCompile project(':tds-test-utils')
-  testCompile 'edu.ucar:cdm-test-utils'
+  testImplementation 'junit:junit'
+  testImplementation project(':tds-test-utils')
+  testImplementation 'edu.ucar:cdm-test-utils'
 }
 
 test {

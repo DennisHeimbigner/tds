@@ -8,10 +8,10 @@ package dap4.test;
 import dap4.core.data.DSPRegistry;
 import dap4.core.util.DapException;
 import dap4.core.util.DapUtil;
-import dap4.dap4lib.FileDSP;
+import dap4.dap4lib.RawDSP;
+import dap4.servlet.CDMDSP;
 import dap4.servlet.DapCache;
 import dap4.servlet.DapController;
-import dap4.servlet.SynDSP;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
@@ -37,6 +37,7 @@ import thredds.server.dap4.Dap4Controller;
 import ucar.httpservices.HTTPMethod;
 import ucar.httpservices.HTTPUtil;
 import ucar.nc2.NetcdfFile;
+import ucar.nc2.NetcdfFiles;
 import ucar.nc2.ffi.netcdf.NetcdfClibrary;
 import ucar.nc2.jni.netcdf.Nc4prototypes;
 
@@ -50,7 +51,7 @@ import java.util.List;
 
 @ContextConfiguration
 @WebAppConfiguration("file:src/test/data")
-abstract public class DapTestCommon extends TdsUnitTestCommon {
+abstract public class DapSvcTestCommon extends TdsUnitTestCommon {
 
   //////////////////////////////////////////////////
   // Constants
@@ -81,13 +82,13 @@ abstract public class DapTestCommon extends TdsUnitTestCommon {
     public DapController controller = null;
     public String url = null;
     public String servletname = null;
-    public DapTestCommon parent = null;
+    public DapSvcTestCommon parent = null;
 
-    public Mocker(String servletname, String url, DapTestCommon parent) throws Exception {
+    public Mocker(String servletname, String url, DapSvcTestCommon parent) throws Exception {
       this(servletname, url, new Dap4Controller(), parent);
     }
 
-    public Mocker(String servletname, String url, DapController controller, DapTestCommon parent) throws Exception {
+    public Mocker(String servletname, String url, DapController controller, DapSvcTestCommon parent) throws Exception {
       this.parent = parent;
       this.url = url;
       this.servletname = servletname;
@@ -151,7 +152,7 @@ abstract public class DapTestCommon extends TdsUnitTestCommon {
               break;
           }
           if (i >= pieces.length) // not found
-            throw new IllegalArgumentException("DapTestCommon");
+            throw new IllegalArgumentException("DapSvcTestCommon");
           prefix = DapUtil.join(pieces, "/", 0, i);
           suffix = DapUtil.join(pieces, "/", i + 1, pieces.length);
         }
@@ -340,16 +341,16 @@ abstract public class DapTestCommon extends TdsUnitTestCommon {
 
   protected String title = "Dap4 Testing";
 
-  public DapTestCommon() {
+  public DapSvcTestCommon() {
     this("DapTest");
   }
 
-  public DapTestCommon(String name) {
+  public DapSvcTestCommon(String name) {
     super(name);
 
     this.d4tsserver = TdsTestDir.dap4TestServer;
     if (DEBUG)
-      System.err.println("DapTestCommon: d4tsServer=" + d4tsserver);
+      System.err.println("DapSvcTestCommon: d4tsServer=" + d4tsserver);
   }
 
   /**
@@ -442,13 +443,12 @@ abstract public class DapTestCommon extends TdsUnitTestCommon {
 
   static protected void testSetup() {
     DapController.TESTING = true;
-    DapCache.dspregistry.register(FileDSP.class, DSPRegistry.FIRST);
-    DapCache.dspregistry.register(SynDSP.class, DSPRegistry.FIRST);
+    DapCache.dspregistry.register(RawDSP.class, DSPRegistry.FIRST);
     DapCache.dspregistry.register(CDMDSP.class, DSPRegistry.LAST);
     try {
       // Always prefer Nc4Iosp over HDF5
-      NetcdfFile.iospDeRegister(NC4IOSP);
-      NetcdfFile.registerIOProviderPreferred(NC4IOSP, ucar.nc2.iosp.hdf5.H5iosp.class);
+      // NetcdfFiles.iospDeRegister(NC4IOSP);
+      // NetcdfFiles.registerIOProviderPreferred(NC4IOSP, ucar.nc2.iosp.hdf5.H5iosp.class);
       // Print out the library version
       System.err.printf("Netcdf-c library version: %s%n", getCLibraryVersion());
       System.err.flush();

@@ -62,7 +62,7 @@ public class DapSerializer {
     writer.flush(); // If stream is ChunkWriter, then dump DMR
     // Iterate over the top-level variables in the constraint
     for (DapVariable var : dmr.getTopVariables()) {
-      if (!this.ce.references(var))
+      if (!this.ce.references(var) || var.getCount() == 0)
         continue;
       DataCursor vardata = this.dsp.getVariableData(var);
       if (vardata == null)

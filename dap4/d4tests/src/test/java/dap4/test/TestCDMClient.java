@@ -28,7 +28,7 @@ import java.util.List;
  * Test Client side access
  */
 
-public class TestCDMClient extends DapTestCommon {
+public class TestCDMClient extends DapSvcTestCommon {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   static final boolean DEBUG = false;

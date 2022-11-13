@@ -29,6 +29,7 @@ dependencies {
   compile 'edu.ucar:waterml'
 
   // DAP4 Dependencies (technically forward)
+  compile 'edu.ucar:d4cdm'
   compile 'edu.ucar:d4core'
   compile 'edu.ucar:d4lib'
 

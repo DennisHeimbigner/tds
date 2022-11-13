@@ -1,4 +1,4 @@
-  package thredds.junit4;
+package thredds.junit4;
 
 import org.junit.Ignore;
 import org.junit.Test;

@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * Test OpenDap Server at the NetcdfDataset level
  */
-public class TestHyrax extends DapTestCommon {
+public class TestHyrax extends DapSvcTestCommon {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   static final boolean DEBUG = false;

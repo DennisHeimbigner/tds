@@ -5,9 +5,9 @@
 
 package dap4.servlet;
 
-import dap4.dap4lib.cdm.CDMTypeFcns;
-import dap4.dap4lib.cdm.CDMUtil;
-import dap4.dap4lib.cdm.NodeMap;
+import dap4.cdm.CDMTypeFcns;
+import dap4.cdm.CDMUtil;
+import dap4.cdm.NodeMap;
 import dap4.core.data.DataCursor;
 import dap4.core.dmr.*;
 import dap4.core.util.Convert;
@@ -980,7 +980,7 @@ public class CDMDSP extends AbstractDSP {
 
   protected NetcdfFile createNetcdfFile(String location, CancelTask canceltask) throws DapException {
     try {
-      NetcdfFile ncfile = NetcdfFile.open(location, -1, canceltask, getContext());
+      NetcdfFile ncfile = NetcdfFiles.open(location, -1, canceltask, getContext());
       return ncfile;
     } catch (DapException de) {
       if (DEBUG)

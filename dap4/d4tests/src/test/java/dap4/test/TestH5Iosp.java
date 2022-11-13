@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Category(NotJenkins.class)
-public class TestH5Iosp extends DapTestCommon {
+public class TestH5Iosp extends DapSvcTestCommon {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   static protected final boolean DEBUG = false;

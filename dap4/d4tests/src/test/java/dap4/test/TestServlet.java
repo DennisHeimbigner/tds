@@ -10,7 +10,6 @@ import dap4.core.util.DapDump;
 import dap4.dap4lib.ChunkInputStream;
 import dap4.dap4lib.RequestMode;
 import dap4.servlet.DapCache;
-import dap4.servlet.Generator;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -70,7 +69,7 @@ import ucar.unidata.util.test.category.NotPullRequest;
 
 // non-deterministic failure on GitHub Actions - no need to hold up PRs for now (and will still barf on Jenkins)
 @Category(NotPullRequest.class)
-public class TestServlet extends DapTestCommon {
+public class TestServlet extends DapSvcTestCommon {
   static final boolean USESPRING = false;
 
   static public boolean DEBUG = false;
@@ -180,8 +179,6 @@ public class TestServlet extends DapTestCommon {
       this.mockMvc = mvcbuilder.build();
     }
     testSetup();
-    if (prop_ascii)
-      Generator.setASCII(true);
     TestCase.setRoots(canonjoin(getResourceRoot(), TESTINPUTDIR), canonjoin(getResourceRoot(), BASELINEDIR),
         canonjoin(getResourceRoot(), GENERATEDIR));
     defineAllTestcases();
@@ -256,8 +253,8 @@ public class TestServlet extends DapTestCommon {
     String url = testcase.makeurl(RequestMode.DMR);
     String little = (USEBIG ? "0" : "1");
     String nocsum = (NOCSUM ? "1" : "0");
-    MvcResult result = perform(url, this.mockMvc, RESOURCEPATH, DapTestCommon.ORDERTAG, little, DapTestCommon.NOCSUMTAG,
-        nocsum, DapTestCommon.TESTTAG, "true");
+    MvcResult result = perform(url, this.mockMvc, RESOURCEPATH, DapSvcTestCommon.ORDERTAG, little,
+        DapSvcTestCommon.NOCSUMTAG, nocsum, DapSvcTestCommon.TESTTAG, "true");
 
     // Collect the output
     MockHttpServletResponse res = result.getResponse();
@@ -282,8 +279,8 @@ public class TestServlet extends DapTestCommon {
     String url = testcase.makeurl(RequestMode.DAP);
     String little = (USEBIG ? "0" : "1");
     String nocsum = (NOCSUM ? "1" : "0");
-    MvcResult result = perform(url, this.mockMvc, RESOURCEPATH, DapTestCommon.ORDERTAG, little, DapTestCommon.NOCSUMTAG,
-        nocsum, DapTestCommon.TESTTAG, "true");
+    MvcResult result = perform(url, this.mockMvc, RESOURCEPATH, DapSvcTestCommon.ORDERTAG, little,
+        DapSvcTestCommon.NOCSUMTAG, nocsum, DapSvcTestCommon.TESTTAG, "true");
     // Collect the output
     MockHttpServletResponse res = result.getResponse();
     byte[] byteresult = res.getContentAsByteArray();

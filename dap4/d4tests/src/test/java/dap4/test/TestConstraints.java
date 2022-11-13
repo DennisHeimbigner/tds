@@ -30,7 +30,7 @@ import java.util.List;
  * Test at the NetcdfDataset level
  */
 @Category(NotPullRequest.class)
-public class TestConstraints extends DapTestCommon {
+public class TestConstraints extends DapSvcTestCommon {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   static final boolean DEBUG = false;

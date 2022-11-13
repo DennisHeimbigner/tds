@@ -5,11 +5,9 @@ import dap4.core.data.DSPRegistry;
 import dap4.core.util.DapDump;
 import dap4.core.util.Escape;
 import dap4.dap4lib.ChunkInputStream;
-import dap4.dap4lib.FileDSP;
+import dap4.dap4lib.RawDSP;
 import dap4.dap4lib.RequestMode;
 import dap4.servlet.DapCache;
-import dap4.servlet.Generator;
-import dap4.servlet.SynDSP;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -40,7 +38,7 @@ import java.util.List;
  * test client side deserialization (see TestCDMClient).
  */
 @Category(NotPullRequest.class)
-public class TestServletConstraints extends DapTestCommon {
+public class TestServletConstraints extends DapSvcTestCommon {
   static public boolean DEBUG = false;
   static public boolean DEBUGDATA = false;
   static public boolean PARSEDEBUG = false;
@@ -244,8 +242,8 @@ public class TestServletConstraints extends DapTestCommon {
 
     String little = (USEBIG ? "0" : "1");
     String nocsum = (NOCSUM ? "1" : "0");
-    MvcResult result = perform(url, this.mockMvc, RESOURCEPATH, DapTestCommon.CONSTRAINTTAG, query,
-        DapTestCommon.ORDERTAG, little, DapTestCommon.NOCSUMTAG, nocsum, DapTestCommon.TESTTAG, "true");
+    MvcResult result = perform(url, this.mockMvc, RESOURCEPATH, DapSvcTestCommon.CONSTRAINTTAG, query,
+        DapSvcTestCommon.ORDERTAG, little, DapSvcTestCommon.NOCSUMTAG, nocsum, DapSvcTestCommon.TESTTAG, "true");
 
     // Collect the output
     MockHttpServletResponse res = result.getResponse();
@@ -272,8 +270,8 @@ public class TestServletConstraints extends DapTestCommon {
     String basepath = testcase.makeBasepath(RequestMode.DAP);
     String little = (USEBIG ? "0" : "1");
     String nocsum = (NOCSUM ? "1" : "0");
-    MvcResult result = perform(url, this.mockMvc, RESOURCEPATH, DapTestCommon.CONSTRAINTTAG, query,
-        DapTestCommon.ORDERTAG, little, DapTestCommon.NOCSUMTAG, nocsum, DapTestCommon.TESTTAG, "true");
+    MvcResult result = perform(url, this.mockMvc, RESOURCEPATH, DapSvcTestCommon.CONSTRAINTTAG, query,
+        DapSvcTestCommon.ORDERTAG, little, DapSvcTestCommon.NOCSUMTAG, nocsum, DapSvcTestCommon.TESTTAG, "true");
 
     // Collect the output
     MockHttpServletResponse res = result.getResponse();

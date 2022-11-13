@@ -23,7 +23,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TestParserCE extends DapTestCommon {
+public class TestParserCE extends DapSvcTestCommon {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   //////////////////////////////////////////////////

@@ -10,6 +10,7 @@ import dap4.core.data.DataCursor;
 import dap4.core.dmr.DapType;
 import dap4.core.dmr.DapVariable;
 import dap4.core.dmr.TypeSort;
+import dap4.core.util.DapConstants;
 import dap4.core.util.DapException;
 import dap4.core.util.DapUtil;
 import java.io.IOException;
@@ -75,11 +76,11 @@ public class SerialWriter {
         .order(order);
     this.crcbuffer = ByteBuffer.allocate(4) // 4==sizeof(crc32 digest)
         .order(order);
-    if ("CRC32".equalsIgnoreCase(DapUtil.DIGESTER)) {
+    if ("CRC32".equalsIgnoreCase(DapConstants.DIGESTER)) {
       // use the one from java.util.zip.CRC32
       this.checksum = new java.util.zip.CRC32();
     } else
-      assert (false) : "No such checksum algorithm: " + DapUtil.DIGESTER;
+      assert (false) : "No such checksum algorithm: " + DapConstants.DIGESTER;
 
   }
 
@@ -240,7 +241,7 @@ public class SerialWriter {
       }
       // Write out the digest in binary form
       // Do not use writeBytes because checksum is not itself checksummed
-      outputBytes(csum, 0, DapUtil.CHECKSUMSIZE);
+      outputBytes(csum, 0, DapConstants.CHECKSUMSIZE);
     }
   }
 

@@ -6,6 +6,7 @@
 package dap4.servlet;
 
 import dap4.core.data.ChecksumMode;
+import dap4.core.util.DapConstants;
 import dap4.core.util.DapException;
 import dap4.core.util.DapUtil;
 import dap4.core.util.ResponseFormat;
@@ -235,7 +236,7 @@ public class DapRequest {
     }
 
     // Ditto for checksum
-    p = queryLookup(Dap4Util.DAP4CSUMTAG);
+    p = queryLookup(DapConstants.CHECKSUMTAG);
     if (p != null) {
       this.checksummode = ChecksumMode.modeFor(p);
     }

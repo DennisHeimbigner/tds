@@ -5,6 +5,7 @@
 
 package dap4.servlet;
 
+import dap4.core.util.DapConstants;
 import dap4.core.util.IndentWriter;
 import dap4.dap4lib.DapProtocol;
 import dap4.dap4lib.RequestMode;
@@ -42,10 +43,10 @@ public class DapDSR {
     printer.marginPrintln("xmlns=\"http://xml.opendap.org/ns/DAP/4.0/dataset-services#\">");
     printer.outdent();
     printer.marginPrint("<DapVersion>");
-    printer.print(DapProtocol.X_DAP_VERSION);
+    printer.print(DapConstants.X_DAP_VERSION);
     printer.println("</DapVersion>");
     printer.marginPrint("<ServerSoftwareVersion>");
-    printer.print(DapProtocol.X_DAP_SERVER);
+    printer.print(DapConstants.X_DAP_SERVER);
     printer.println("</ServerSoftwareVersion>");
 
     printer.marginPrintln("<Service title=\"DAP4 Dataset Services\"");

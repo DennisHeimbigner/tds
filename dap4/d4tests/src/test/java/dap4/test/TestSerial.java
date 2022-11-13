@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Test at the NetcdfDataset level; access .ser files on server.
  */
-public class TestSerial extends DapTestCommon {
+public class TestSerial extends DapSvcTestCommon {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   static protected final boolean DEBUG = false;
@@ -89,7 +89,7 @@ public class TestSerial extends DapTestCommon {
       url.append(DAP4TAG);
       if (ce != null && ce.length() > 0) {
         url.append("?");
-        url.append(DapTestCommon.CONSTRAINTTAG);
+        url.append(DapSvcTestCommon.CONSTRAINTTAG);
         url.append("=");
         url.append(ce);
       }

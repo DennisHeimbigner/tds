@@ -176,7 +176,7 @@ abstract public class DapController extends HttpServlet {
     ByteOrder order = daprequest.getOrder();
     ChecksumMode checksummode = daprequest.getChecksumMode();
     dapcxt.put(Dap4Util.DAP4ENDIANTAG, order);
-    dapcxt.put(Dap4Util.DAP4CSUMTAG, checksummode);
+    dapcxt.put(DapConstants.CHECKSUMTAG, checksummode);
     // Transfer all other queries
     Map<String, String> queries = daprequest.getQueries();
     for (Map.Entry<String, String> entry : queries.entrySet()) {
@@ -281,7 +281,7 @@ abstract public class DapController extends HttpServlet {
 
     // Process any constraint view
     CEConstraint ce = null;
-    String sce = drq.queryLookup(DapProtocol.CONSTRAINTTAG);
+    String sce = drq.queryLookup(DapConstants.CONSTRAINTTAG);
     ce = CEConstraint.compile(sce, dmr);
     setConstraint(dmr, ce);
 
@@ -341,7 +341,7 @@ abstract public class DapController extends HttpServlet {
 
     // Process any constraint
     CEConstraint ce = null;
-    String sce = drq.queryLookup(DapProtocol.CONSTRAINTTAG);
+    String sce = drq.queryLookup(DapConstants.CONSTRAINTTAG);
     ce = CEConstraint.compile(sce, dmr);
     setConstraint(dmr, ce);
 
@@ -481,9 +481,9 @@ abstract public class DapController extends HttpServlet {
    * @throws DapException
    */
   void setEndianness(DapDataset dmr, ByteOrder order) throws DapException {
-    DapAttribute a = dmr.findAttribute(DapUtil.LITTLEENDIANATTRNAME);
+    DapAttribute a = dmr.findAttribute(DapConstants.LITTLEENDIANATTRNAME);
     if (a == null) {
-      a = new DapAttribute(DapUtil.LITTLEENDIANATTRNAME, DapType.UINT8);
+      a = new DapAttribute(DapConstants.LITTLEENDIANATTRNAME, DapType.UINT8);
       dmr.addAttribute(a);
     }
     // ByteOrder order = (ByteOrder) cxt.get(Dap4Util.DAP4ENDIANTAG);
@@ -503,9 +503,9 @@ abstract public class DapController extends HttpServlet {
       return;
     if (ce.isUniversal())
       return;
-    DapAttribute a = dmr.findAttribute(DapUtil.CEATTRNAME);
+    DapAttribute a = dmr.findAttribute(DapConstants.CEATTRNAME);
     if (a == null) {
-      a = new DapAttribute(DapUtil.CEATTRNAME, DapType.STRING);
+      a = new DapAttribute(DapConstants.CEATTRNAME, DapType.STRING);
       dmr.addAttribute(a);
     }
     String sce = ce.toConstraintString();

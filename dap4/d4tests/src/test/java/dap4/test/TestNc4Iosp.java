@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Category(NotPullRequest.class)
-public class TestNc4Iosp extends DapTestCommon {
+public class TestNc4Iosp extends DapSvcTestCommon {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   static protected final boolean DEBUG = false;

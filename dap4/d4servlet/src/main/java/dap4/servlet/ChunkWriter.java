@@ -6,6 +6,7 @@
 package dap4.servlet;
 
 import dap4.core.dmr.ErrorResponse;
+import dap4.core.util.DapConstants;
 import dap4.core.util.DapException;
 import dap4.core.util.DapUtil;
 import dap4.dap4lib.DapCodes;
@@ -199,9 +200,9 @@ public class ChunkWriter extends OutputStream {
       state = State.END;
     } else {// mode == DATA
       // Prefix with chunk header
-      int flags = DapUtil.CHUNK_DATA;
+      int flags = DapConstants.CHUNK_DATA;
       if (this.writeorder == ByteOrder.LITTLE_ENDIAN)
-        flags |= DapUtil.CHUNK_LITTLE_ENDIAN;
+        flags |= DapConstants.CHUNK_LITTLE_ENDIAN;
       chunkheader(dxr8.length, flags, this.header);
       // write the header
       output.write(DapUtil.extract(this.header));
@@ -236,7 +237,7 @@ public class ChunkWriter extends OutputStream {
       // clear any partial chunk
       chunk.clear();
       // create an error header
-      int flags = DapUtil.CHUNK_ERROR | DapUtil.CHUNK_END;
+      int flags = DapConstants.CHUNK_ERROR | DapConstants.CHUNK_END;
       chunkheader(errbody8.length, flags, header);
       output.write(DapUtil.extract(header));
       output.write(errbody8);
@@ -332,7 +333,7 @@ public class ChunkWriter extends OutputStream {
     // but do not close the underlying output stream
     state = State.DATA; // pretend
 
-    int flags = DapUtil.CHUNK_END;
+    int flags = DapConstants.CHUNK_END;
     writeChunk(flags);
     state = State.END;
     this.output.flush(); // Do not close
@@ -426,7 +427,7 @@ public class ChunkWriter extends OutputStream {
       int avail = chunk.remaining();
       do {
         if (avail == 0) {
-          writeChunk(DapUtil.CHUNK_DATA);
+          writeChunk(DapConstants.CHUNK_DATA);
           avail = chunk.remaining();
         }
         int towrite = (left < avail ? left : avail);

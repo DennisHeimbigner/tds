@@ -4,12 +4,11 @@ import dap4.core.data.DSP;
 import dap4.core.util.DapContext;
 import dap4.core.util.DapException;
 import dap4.core.util.DapUtil;
-import dap4.dap4lib.DMRPrinter;
+import dap4.core.dmr.DMRPrinter;
 import dap4.dap4lib.DSPPrinter;
-import dap4.dap4lib.FileDSP;
+import dap4.dap4lib.RawDSP;
 import dap4.dap4lib.HttpDSP;
 import dap4.servlet.DapCache;
-import dap4.servlet.SynDSP;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,11 +29,10 @@ import java.util.List;
  * AbstractDSP: tested by all the other DSPs
  * CDMDSP: tested elsewhere (TestServlet)
  * HttpDSP: tested elsewhere (TestCDMClient)
- * FileDSP: tested here
- * SynDSP: tested here
- * D4DSP: tested because superclass of FileDSP, HttpDSP, and SynDSP
+ * RawDSP: tested here
+ * D4DSP: tested because superclass of other DSP classes
  */
-public class TestDSP extends DapTestCommon {
+public class TestDSP extends DapSvcTestCommon {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   static final boolean DEBUG = false;
@@ -145,9 +143,7 @@ public class TestDSP extends DapTestCommon {
       if ("file".equals(proto)) {
         // discriminate on the extensions
         if (".raw".equals(ext)) {
-          dsp = new FileDSP();
-        } else if (".syn".equals(ext)) {
-          dsp = new SynDSP();
+          dsp = new RawDSP();
         }
       } else if ("http".equals(proto) || "https".equals(url.getProtocol())) {
         dsp = new HttpDSP();
@@ -191,8 +187,6 @@ public class TestDSP extends DapTestCommon {
     } else if (scheme.equals("file")) {
       if (ext.equals("raw"))
         return "file:/" + this.resourceroot + "/" + TESTCDMINPUT;
-      if (ext.equals("syn"))
-        return "file:/" + this.resourceroot + "/" + TESTDSPINPUT;
       if (ext.equals("nc"))
         return "file:/" + this.resourceroot + "/" + TESTFILESINPUT;
     }
@@ -223,7 +217,7 @@ public class TestDSP extends DapTestCommon {
     TestFilter.filterfiles(dir, matches, "raw");
     if (false) {
       dir = TestCase.root + "/" + TESTFILESINPUT;
-      TestFilter.filterfiles(dir, matches, "nc", "syn");
+      TestFilter.filterfiles(dir, matches, "nc");
     }
     for (String f : matches) {
       boolean excluded = false;

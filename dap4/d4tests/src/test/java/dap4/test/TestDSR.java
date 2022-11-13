@@ -2,10 +2,8 @@ package dap4.test;
 
 
 import dap4.core.data.DSPRegistry;
-import dap4.dap4lib.FileDSP;
+import dap4.dap4lib.RawDSP;
 import dap4.servlet.DapCache;
-import dap4.servlet.Generator;
-import dap4.servlet.SynDSP;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,7 +22,7 @@ import java.lang.invoke.MethodHandles;
  * generation code
  */
 
-public class TestDSR extends DapTestCommon {
+public class TestDSR extends DapSvcTestCommon {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   static protected final boolean DEBUG = false;
@@ -57,10 +55,7 @@ public class TestDSR extends DapTestCommon {
     mvcbuilder.setValidator(new TestServlet.NullValidator());
     this.mockMvc = mvcbuilder.build();
     testSetup();
-    DapCache.dspregistry.register(FileDSP.class, DSPRegistry.FIRST);
-    DapCache.dspregistry.register(SynDSP.class, DSPRegistry.FIRST);
-    if (prop_ascii)
-      Generator.setASCII(true);
+    DapCache.dspregistry.register(RawDSP.class, DSPRegistry.FIRST);
     this.resourceroot = getResourceRoot();
     // this.datasetpath = getResourceRoot();
   }
