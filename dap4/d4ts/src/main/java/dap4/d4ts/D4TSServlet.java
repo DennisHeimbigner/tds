@@ -49,7 +49,6 @@ public class D4TSServlet extends DapController {
       DapCache.dspregistry.register(CDMDSP.class, DSPRegistry.LAST);
       DapCache.dspregistry.register(RawDSP.class, DSPRegistry.LAST);
     }
-
   }
 
   //////////////////////////////////////////////////
