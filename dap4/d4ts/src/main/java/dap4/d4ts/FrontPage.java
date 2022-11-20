@@ -9,7 +9,11 @@ import dap4.core.util.DapException;
 import dap4.core.util.DapUtil;
 import dap4.dap4lib.DapLog;
 import dap4.servlet.DapRequest;
+
+import javax.servlet.ServletContext;
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -34,9 +38,7 @@ public class FrontPage {
 
   // Define the file sources of interest
   static final protected FileSource[] SOURCES =
-      new FileSource[] {new FileSource(".nc", "netCDF"), new FileSource(".hdf5", "HDF5"),
-          new FileSource(".dap", "Raw Protocol Output"), new FileSource(".syn", "Synthetic")};
-
+      new FileSource[] {new FileSource(".nc", "netCDF")};
   static public class Root {
     public String prefix;
     public String dir;
@@ -180,13 +182,10 @@ public class FrontPage {
           for (File file : src.files) {
             String name = file.getName();
             StringBuilder buf = new StringBuilder();
-            buf.append(this.drq.getControllerPath());
-            buf.append('/');
-            buf.append(DapUtil.canonicalpath(root.dir));
-            buf.append('/');
-            buf.append(DapUtil.canonicalpath(name));
-            String urlpath = buf.toString();
-            String line = String.format(HTML_FORMAT, name, urlpath, urlpath, urlpath);
+            buf.append(this.drq.getResourcePath(name));
+            //String urlpath = buf.toString();
+            String url = String.format(HTML_URL_FORMAT, HTML_URL_SCHEME, dap4TestServer, root.dir, name);
+            String line = String.format(HTML_FORMAT, name, url, url, url);
             html.append(line);
           }
           html.append(TABLE_FOOTER);
@@ -258,20 +257,22 @@ public class FrontPage {
    */
 
   //////////////////////////////////////////////////
-  // HTML prefix and suffix
+  // HTML Text Pieces
   // (Remember that java does not allow Strings to cross lines)
+  static final String HTML_URL_SCHEME = "http"; // Eventually change to https
+  static final String HTML_URL_FORMAT = "%s://%s/d4ts/%s/%s";
+
   static final String HTML_PREFIX =
       "<html>\n<head>\n<title>DAP4 Test Files</title>\n<meta http-equiv=\"Content-Type\" content=\"text/html\">\n</meta>\n<body bgcolor=\"#FFFFFF\">\n";
 
   static final String HTML_HEADER1 = "<h1>DAP4 Test Files</h1>\n";
-  static final String HTML_HEADER2 = "<h2>http://" + dap4TestServer + "/d4ts/{%s}</h2>%n<hr>%n";
+  static final String HTML_HEADER2 = "<h2>http://" + dap4TestServer + "/d4ts/%s/*</h2>%n<hr>%n";
   static final String HTML_HEADER3 = "<h3>%s Based Test Files</h3>%n";
 
   static final String TABLE_HEADER = "<table>\n";
   static final String TABLE_FOOTER = "</table>\n";
 
   static final String HTML_FOOTER = "<hr>\n</html>\n";
-
   static final String HTML_FORMAT = "<tr>%n" + "<td halign='right'><b>%s:</b></td>%n"
       + "<td halign='center'><a href='%s.dmr.xml'> DMR.XML </a></div></td>%n"
       + "<td halign='center'><a href='%s.dap'> DAP </a></div></td>%n"

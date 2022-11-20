@@ -160,11 +160,11 @@ abstract public class DapController extends HttpServlet {
       initialize();
     DapRequest daprequest = getRequestState(req, res);
     String url = daprequest.getOriginalURL();
+    if(DEBUG) {
     StringBuilder info = new StringBuilder("doGet():");
     info.append(" dataset = ");
     info.append(" url = ");
     info.append(url);
-    if (DEBUG) {
       System.err.println("DAP4 Servlet: processing url: " + daprequest.getOriginalURL());
     }
     DapContext dapcxt = new DapContext();
@@ -248,8 +248,8 @@ abstract public class DapController extends HttpServlet {
 
   protected void doDSR(DapRequest drq, DapContext cxt) throws IOException {
     try {
-      DapDSR dsrbuilder = new DapDSR();
-      String dsr = dsrbuilder.generate(drq.getURL());
+      DapDSR dsrbuilder = new DapDSR(drq,cxt);
+      String dsr = dsrbuilder.generate(drq.getFormat(),drq.getDataset());
       OutputStream out = drq.getOutputStream();
       addCommonHeaders(drq);// Add relevant headers
       // Wrap the outputstream with a Chunk writer
@@ -327,7 +327,7 @@ abstract public class DapController extends HttpServlet {
 
     DSP dsp = DapCache.open(realpath, cxt);
     if (dsp == null)
-      throw new DapException("No such file: " + drq.getResourceRoot());
+      throw new DapException("No such file: " + realpath);
     DapDataset dmr = dsp.getDMR();
     if (DUMPDMR) {
       printDMR(dmr);
@@ -404,7 +404,9 @@ abstract public class DapController extends HttpServlet {
     if (format == null)
       format = ResponseFormat.NONE;
     DapProtocol.ContentType contentheaders = DapProtocol.contenttypes.get(drq.getMode());
-    String header = contentheaders.getFormat(format);
+    String header = null;
+    if(contentheaders != null)
+      header = contentheaders.getFormat(format);
     if (header != null) {
       header = header + "; charset=utf-8";
       drq.setResponseHeader("Content-Type", header);

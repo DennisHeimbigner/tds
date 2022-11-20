@@ -119,9 +119,9 @@ dependencies {
 
 // "testRuntime" extends from "runtime", meaning that "testRuntime" will get the log4j dependencies declared in
 // "runtime". However, we want logback-classic to be the logger during tests, so exclude all of the log4j stuff.
-//configurations.testRuntime {
-//  exclude group: 'org.apache.logging.log4j'
-//}
+configurations.testRuntime {
+  exclude group: 'org.apache.logging.log4j'
+}
 
 task copyWebappFilesForTests(type: Copy) {
   // Tests expect for certain webapp files to be accessible from the classpath (e.g. WEB-INF/applicationContext.xml).
@@ -244,7 +244,7 @@ configurations.all {
               ...
    */
   exclude group: 'stax', module: 'stax-api'
-//  exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+  exclude group: 'org.slf4j', module: 'slf4j-log4j12'
   exclude group: 'net.openhft', module: 'chronicle-analytics'
 }
 

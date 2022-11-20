@@ -25,6 +25,8 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 @Controller
 @RequestMapping("/dap4")
@@ -115,24 +117,16 @@ public class Dap4Controller extends DapController {
   // to work under Intellij.
   @Override
   public String getResourcePath(DapRequest drq, String location) throws DapException {
-    String realpath;
-    if (TdsRequestedDataset.getDatasetManager() != null) {
-      realpath = TdsRequestedDataset.getLocationFromRequestPath(location);
-    } else {
-      assert TdsRequestedDataset.getDatasetManager() == null;
-      String prefix = drq.getResourceRoot();
-      assert (prefix != null);
-      realpath = DapUtil.canonjoin(prefix, location);
+    URL url = null;
+    try {
+      url = this.getServletContext().getResource(location);
+    } catch (MalformedURLException mue) {
+      throw new DapException(mue);
     }
-
-    if (!TESTING) {
-      if (!TdsRequestedDataset.resourceControlOk(drq.getRequest(), drq.getResponse(), realpath))
-        throw new DapException("Not authorized: " + location).setCode(DapCodes.SC_FORBIDDEN);
-    }
+    String realpath = url.getPath();
     File f = new File(realpath);
-    if (!f.exists() || !f.canRead())
+    if(!f.exists() || !f.canRead())
       throw new DapException("Not found: " + location).setCode(DapCodes.SC_NOT_FOUND);
-    // ncfile = TdsRequestedDataset.getNetcdfFile(this.request, this.response, path);
     return realpath;
   }
 

@@ -1,0 +1,55 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+<!--
+Copyright 1998-2022 University Corporation for Atmospheric Research/Unidata.
+See LICENSE file for more info.
+-->
+<html>
+<head>
+<title>Dataset Services Response</title>
+<style>
+table.t1, td.t1, th.t1 {border: 1px solid}
+td.t1, th.t1 {padding:4px}
+</style>
+</head>
+<body>
+<h1 style="margin-bottom:0em;">Dap4 Dataset: test_atomic_array.nc</h1>
+<table style="font-size:1.25em;text-indent:2em;">
+<tr><td style="font-weight:bold;">Dap Version:<td>${DAP_VERSION}</tr>
+<tr><td style="font-weight:bold">Server Software Version:<td>${DAP_SERVER}</tr>
+</table>
+<h2>DAP4 Dataset Services</h2>
+<table class="t1">
+<tr>
+    <th class="t1">Dataset Service
+    <th class="t1">Class
+    <th class="t1">Format
+    <th class="t1">URL
+    <th class="t1">Media Type
+<tr>
+    <td class="t1">Metadata
+    <td class="t1">DMR
+    <td class="t1">XML
+    <td class="t1"><a href="https://remotetest.unidata.ucar.edu/d4ts/testfiles/${DATASET}.dmr.xml">${DATASET}.dmr.xml</a>
+    <td class="t1">application/vnd.opendap.dap4.dataset-metadata+xml
+<tr>
+    <td class="t1">Data
+    <td class="t1">DAP
+    <td class="t1">Binary
+    <td class="t1"><a href="https://remotetest.unidata.ucar.edu/d4ts/testfiles/${DATASET}.dap">${DATASET}.dap</a>
+    <td class="t1">application/vnd.opendap.dap4.data
+<tr>
+    <td class="t1">Services
+    <td class="t1">DSR
+    <td class="t1">XML
+    <td class="t1"><a href="https://remotetest.unidata.ucar.edu/d4ts/testfiles/${DATASET}.dsr.xml">${DATASET}.dsr.xml</a>
+    <td class="t1">application/vnd.opendap.dap4.dataset-services+xml
+<tr>
+    <td class="t1">Services
+    <td class="t1">DSR
+    <td class="t1">HTML
+    <td class="t1"><a href="https://remotetest.unidata.ucar.edu/d4ts/testfiles/${DATASET}.dsr.html">${DATASET}.dsr.html</a>
+    <td class="t1">application/vnd.opendap.dap4.dataset-services+html
+</table>
+</body>
+</html>

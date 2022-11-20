@@ -6,10 +6,13 @@
 package dap4.servlet;
 
 import dap4.core.util.DapConstants;
+import dap4.core.util.DapContext;
 import dap4.core.util.IndentWriter;
+import dap4.core.util.ResponseFormat;
 import dap4.dap4lib.DapProtocol;
 import dap4.dap4lib.RequestMode;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 
 /**
@@ -24,10 +27,21 @@ public class DapDSR {
 
   static final boolean DEBUG = false;
 
+  static final String DSRXMLTEMPLATE = "/resources/dsr.xml.template";
+  static final String DSRHTMLTEMPLATE = "/resources/dsr.html.template";
+
+  //////////////////////////////////////////////////
+  // Instance Variables
+  DapRequest drq;
+  DapContext cxt;
+
   //////////////////////////////////////////////////
   // Constructor(s)
 
-  public DapDSR() {}
+  public DapDSR(DapRequest drq, DapContext cxt) throws IOException {
+    this.drq = drq;
+    this.cxt = cxt;
+  }
 
   //////////////////////////////////////////////////
   // Accessors
@@ -35,94 +49,45 @@ public class DapDSR {
   //////////////////////////////////////////////////
   // API
 
-  public String generate(String dataseturl) throws IOException {
-    StringWriter sw = new StringWriter();
-    IndentWriter printer = new IndentWriter(sw);
-    printer.marginPrintln("<DatasetServices");
-    printer.indent(2);
-    printer.marginPrintln("xmlns=\"http://xml.opendap.org/ns/DAP/4.0/dataset-services#\">");
-    printer.outdent();
-    printer.marginPrint("<DapVersion>");
-    printer.print(DapConstants.X_DAP_VERSION);
-    printer.println("</DapVersion>");
-    printer.marginPrint("<ServerSoftwareVersion>");
-    printer.print(DapConstants.X_DAP_SERVER);
-    printer.println("</ServerSoftwareVersion>");
-
-    printer.marginPrintln("<Service title=\"DAP4 Dataset Services\"");
-    printer.indent(3);
-    printer.marginPrintln("role=\"http://services.opendap.org/dap4/dataset-services\">");
-    printer.outdent(3);
-    printer.indent();
-    printer.marginPrint("<link type=\"");
-    printer.print(DapProtocol.contenttypes.get(RequestMode.DSR).contenttype);
-    printer.println("\"");
-    printer.indent(2);
-    printer.marginPrint("href=\"");
-    printer.print(dataseturl);
-    printer.println("\">");
-    printer.outdent(2);
-    printer.indent();
-    printer.marginPrintln("<alt type=\"text/xml\"/>");
-    printer.outdent();
-    printer.marginPrintln("</link>");
-    printer.marginPrintln("<link type=\"text/xml\"");
-    printer.indent(2);
-    printer.marginPrint("href=\"");
-    printer.print(dataseturl);
-    printer.println(".xml\"/>");
-    printer.outdent(2);
-    printer.outdent();
-    printer.marginPrintln("</Service>");
-
-    printer.marginPrintln("<Service title=\"DAP4 Dataset Metadata\"");
-    printer.indent(3);
-    printer.marginPrintln("role=\"http://services.opendap.org/dap4/dataset-metadata\">");
-    printer.outdent(3);
-    printer.indent();
-    printer.marginPrint("<link type=\"");
-    printer.print(DapProtocol.contenttypes.get(RequestMode.DMR).contenttype);
-    printer.println("\"");
-    printer.indent(2);
-    printer.marginPrint("href=\"");
-    printer.print(dataseturl);
-    printer.println(".dmr\">");
-    printer.outdent(2);
-    printer.indent();
-    printer.marginPrintln("<alt type=\"text/xml\"/>");
-    printer.outdent();
-    printer.marginPrintln("</link>");
-    printer.marginPrintln("<link type=\"text/xml\"");
-    printer.indent(2);
-    printer.marginPrint("href=\"");
-    printer.print(dataseturl);
-    printer.println(".dmr.xml\"/>");
-    printer.outdent(2);
-    printer.outdent();
-    printer.marginPrintln("</Service>");
-
-    printer.marginPrintln("<Service title=\"DAP4 Dataset Data\"");
-    printer.indent(2);
-    printer.marginPrintln("role=\"http://services.opendap.org/dap4/data\">");
-    printer.outdent(2);
-    printer.indent();
-    printer.marginPrint("<link type=\"");
-    printer.print(DapProtocol.contenttypes.get(RequestMode.DAP).contenttype);
-    printer.println("\"");
-    printer.indent(2);
-    printer.marginPrint("href=\"");
-    printer.print(dataseturl);
-    printer.println(".dap\"/>");
-    printer.outdent(2);
-    printer.outdent();
-    printer.marginPrintln("</Service>");
-    printer.outdent();
-    printer.marginPrintln("</DatasetServices>");
-
-    printer.flush();
-    printer.close();
-    sw.close();
-    return sw.toString();
+  public String generate(ResponseFormat format, String dataset) throws IOException {
+    // Get the DSR template
+    String template = getTemplate(format);
+    String datasetname = dataset;
+    StringBuilder dsr = new StringBuilder(template);
+    substitute(dsr,"DAP_VERSION",DapConstants.X_DAP_VERSION);
+    substitute(dsr,"DAP_SERVER",DapConstants.X_DAP_SERVER);
+    substitute(dsr,"DATASET",dataset);
+    return dsr.toString();
   }
+
+  protected String getTemplate(ResponseFormat format) throws IOException {
+    StringBuilder buf = new StringBuilder();
+    // Get template as resource stream
+    String template = null;
+    switch (format) {
+    case XML: template = DSRXMLTEMPLATE; break;
+    case HTML: template = DSRHTMLTEMPLATE; break;
+    default: throw new IOException("Unsupported DSR Response Format: "+format.toString());
+    }
+    try (InputStream stream = drq.getServletContext().getResourceAsStream(template)) {
+      int ch;
+      while((ch = stream.read()) >= 0) {buf.append((char)ch);}
+    }
+    return buf.toString();
+  }
+
+  protected void substitute(StringBuilder buf, String macro, String value) {
+    int from = 0;
+    String tag = "${"+macro+"}";
+    int taglen = tag.length();
+    int valuelen = value.length();
+    for(;;) {
+	int index = buf.indexOf(tag,from);
+	if (index < 0) break;
+	buf.replace(index,index+taglen,value);
+	from = index+valuelen;
+    }
+  }
+
 
 } // DapDSR

@@ -26,6 +26,7 @@ import java.net.URL;
 import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * User requests get cached here so that downstream code can access
@@ -56,54 +57,25 @@ public class DapRequest {
   protected HttpServletRequest request = null;
   protected HttpServletResponse response = null;
 
-  protected String url = null; // without any query and as with any modified dataset path
-  protected String querystring = null;
-  protected String server = null; // scheme + host + port
-  protected String controllerpath = null; // scheme + host + port + prefix of path thru servlet Notes
-  protected String datasetpath = null; // past controller path; char(0) != '/'
+  protected XURI xuri = null; // without any query and as with any modified dataset path
 
   protected RequestMode mode = null; // .dmr, .dap, or .dsr
   protected ResponseFormat format = null; // e.g. .xml when given .dmr.xml
 
-  protected Map<String, String> queries = new HashMap<String, String>();
-  protected DapController controller = null;
-
   protected ByteOrder order = ByteOrder.nativeOrder();
   protected ChecksumMode checksummode = null;
-  protected String resourceroot = null;
 
-  protected ServletContext servletcontext = null;
+  protected String datasetpath = null;
 
   //////////////////////////////////////////////////
   // Constructor(s)
 
   public DapRequest(DapController controller, HttpServletRequest request, HttpServletResponse response)
       throws DapException {
-    this.controller = controller;
     this.request = request;
     this.response = response;
-    this.servletcontext = request.getServletContext();
-
-    // Figure out the absolute path to our resources directory
-    this.resourceroot = (String) this.request.getAttribute("RESOURCEDIR");
-    if (this.resourceroot == null && this.servletcontext != null) {
-      try {
-        URL url = this.servletcontext.getResource(WEBINFPATH);
-        if (url == null)
-          this.resourceroot = null;
-        else {
-          if (!url.getProtocol().equals("file"))
-            throw new DapException("Cannot locate resource root");
-          this.resourceroot = DapUtil.canonicalpath(url.getFile() + "/resources");
-        }
-      } catch (MalformedURLException e) {
-        this.resourceroot = null;
-      }
-      if (this.resourceroot == null)
-        throw new DapException("Cannot locate resource root");
-    }
     try {
-      parse();
+      parseURI(); // Pull Info from the URI
     } catch (IOException ioe) {
       throw new DapException(ioe);
     }
@@ -137,57 +109,16 @@ public class DapRequest {
    * 7. The query part.
    */
 
-  protected void parse() throws IOException {
-    this.url = request.getRequestURL().toString(); // does not include query
-    // The mock servlet code does not construct a query string,
-    // so if we are doing testing, construct from parametermap.
-    if (DapController.TESTING) {
-      this.querystring = makeQueryString(this.request);
-    } else {
-      this.querystring = request.getQueryString(); // raw (undecoded)
-    }
-
-    XURI xuri;
+  protected void parseURI() throws IOException {
     try {
-      xuri = new XURI(this.url).parseQuery(this.querystring);
+      xuri = new XURI(request.getRequestURL().toString());
     } catch (URISyntaxException e) {
       throw new IOException(e);
     }
-    // Now, construct various items
-    StringBuilder buf = new StringBuilder();
-    buf.append(request.getScheme());
-    buf.append("://");
-    buf.append(request.getServerName());
-    int port = request.getServerPort();
-    if (port > 0) {
-      buf.append(":");
-      buf.append(port);
-    }
-    this.server = buf.toString();
-
-    // There appears to be some inconsistency in how the url path is divided up
-    // depending on if this is a spring controller vs a raw servlet.
-    // Try to canonicalize so that context path always ends with id
-    // and servletpath does not start with it.
-    String id = controller.getServletID();
-    String sp = DapUtil.canonicalpath(request.getServletPath());
-    String cp = DapUtil.canonicalpath(request.getContextPath());
-    if (!cp.endsWith(id)) // probably spring ; contextpath does not ends with id
-      cp = cp + "/" + id;
-    buf.append(cp);
-    this.controllerpath = buf.toString();
-    sp = HTTPUtil.relpath(sp);
-    if (sp.startsWith(id)) // probably spring also
-      sp = sp.substring(id.length());
-
-    this.datasetpath = HTTPUtil.relpath(sp);
-    this.datasetpath = DapUtil.nullify(this.datasetpath);
-
-    this.mode = null;
+    this.datasetpath = request.getPathInfo();
     if (this.datasetpath == null) {
-      // Presume mode is a capabilities request
+      // Eventually make this a capabilities request
       this.mode = RequestMode.CAPABILITIES;
-      this.format = ResponseFormat.HTML;
     } else {
       // Decompose path by '.'
       String[] pieces = this.datasetpath.split("[.]");
@@ -221,10 +152,6 @@ public class DapRequest {
     if (this.format == null)
       this.format = ResponseFormat.NONE;
 
-    // Parse the query string into a Map
-    if (querystring != null && querystring.length() > 0)
-      this.queries = xuri.getQueryFields();
-
     // For testing purposes, get the desired endianness to use with replies
     String p = queryLookup(Dap4Util.DAP4ENDIANTAG);
     if (p != null) {
@@ -240,12 +167,6 @@ public class DapRequest {
     if (p != null) {
       this.checksummode = ChecksumMode.modeFor(p);
     }
-
-    if (DEBUG) {
-      DapLog.debug("DapRequest: controllerpath =" + this.controllerpath);
-      DapLog.debug("DapRequest: extension=" + (this.mode == null ? "null" : this.mode.extension()));
-      DapLog.debug("DapRequest: datasetpath=" + this.datasetpath);
-    }
   }
 
   //////////////////////////////////////////////////
@@ -254,11 +175,6 @@ public class DapRequest {
   public ByteOrder getOrder() {
     return this.order;
   }
-
-  public String getResourceRoot() {
-    return this.resourceroot;
-  }
-
   public ChecksumMode getChecksumMode() {
     return this.checksummode;
   }
@@ -276,31 +192,19 @@ public class DapRequest {
   }
 
   public String getURL() {
-    return this.url;
+    return this.xuri.toString();
   }
 
   public String getOriginalURL() {
-    return (this.querystring == null ? this.url : this.url + "?" + this.querystring);
+    return this.xuri.getOriginal();
   }
 
   public String getDataset() {
     return this.datasetpath;
   }
 
-  public String getServer() {
-    return this.server;
-  }
-
   public ServletContext getServletContext() {
-    return this.servletcontext;
-  }
-
-  public String getControllerPath() {
-    return this.controllerpath;
-  }
-
-  public String getURLPath() {
-    return this.controllerpath + (this.datasetpath == null ? "" : this.datasetpath);
+    return this.request.getServletContext();
   }
 
   public RequestMode getMode() {
@@ -322,15 +226,20 @@ public class DapRequest {
   }
 
   public String queryLookup(String name) {
-    return queries.get(name.toLowerCase());
+    return this.xuri.getQueryFields().get(name.toLowerCase());
   }
 
   public Map<String, String> getQueries() {
-    return this.queries;
+    return this.xuri.getQueryFields();
   }
 
   public String getResourcePath(String relpath) throws IOException {
-    return controller.getResourcePath(this, relpath);
+    if(relpath.length() == 0 || (relpath.charAt(0) != '/' && relpath.charAt(0) != '\\'))
+      relpath = '/' + relpath;
+    String servletpath = this.getServletContext().getResource("/").getPath();
+    String path = servletpath+"WEB-INF/resources" + relpath;
+    path = DapUtil.canonicalpath(path);
+    return path;
   }
 
   public String getDatasetPath() {
