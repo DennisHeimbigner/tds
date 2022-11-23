@@ -5,11 +5,12 @@ dependencies {
     implementation enforcedPlatform(project(':tds-platform'))
 
     implementation 'edu.ucar:d4core'
+    implementation 'edu.ucar:d4core'
     implementation 'edu.ucar:d4lib'
     implementation 'edu.ucar:d4cdm'
     implementation 'edu.ucar:httpservices'
     implementation 'edu.ucar:cdm-core'
 
     compileOnly 'javax.servlet:javax.servlet-api'
-    implementation 'org.slf4j:slf4j-api'
+    compileOnly 'org.slf4j:slf4j-api'
 }

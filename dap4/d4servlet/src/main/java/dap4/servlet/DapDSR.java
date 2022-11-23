@@ -11,6 +11,8 @@ import dap4.core.util.IndentWriter;
 import dap4.core.util.ResponseFormat;
 import dap4.dap4lib.DapProtocol;
 import dap4.dap4lib.RequestMode;
+
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -27,8 +29,8 @@ public class DapDSR {
 
   static final boolean DEBUG = false;
 
-  static final String DSRXMLTEMPLATE = "/resources/dsr.xml.template";
-  static final String DSRHTMLTEMPLATE = "/resources/dsr.html.template";
+  static final String DSRXMLTEMPLATE = "/dsr.xml.template";
+  static final String DSRHTMLTEMPLATE = "/dsr.html.template";
 
   //////////////////////////////////////////////////
   // Instance Variables
@@ -44,9 +46,6 @@ public class DapDSR {
   }
 
   //////////////////////////////////////////////////
-  // Accessors
-
-  //////////////////////////////////////////////////
   // API
 
   public String generate(ResponseFormat format, String dataset) throws IOException {
@@ -54,9 +53,9 @@ public class DapDSR {
     String template = getTemplate(format);
     String datasetname = dataset;
     StringBuilder dsr = new StringBuilder(template);
-    substitute(dsr,"DAP_VERSION",DapConstants.X_DAP_VERSION);
-    substitute(dsr,"DAP_SERVER",DapConstants.X_DAP_SERVER);
-    substitute(dsr,"DATASET",dataset);
+    substitute(dsr, "DAP_VERSION", DapConstants.X_DAP_VERSION);
+    substitute(dsr, "DAP_SERVER", DapConstants.X_DAP_SERVER);
+    substitute(dsr, "DATASET", dataset);
     return dsr.toString();
   }
 
@@ -65,27 +64,36 @@ public class DapDSR {
     // Get template as resource stream
     String template = null;
     switch (format) {
-    case XML: template = DSRXMLTEMPLATE; break;
-    case HTML: template = DSRHTMLTEMPLATE; break;
-    default: throw new IOException("Unsupported DSR Response Format: "+format.toString());
+      case XML:
+        template = DSRXMLTEMPLATE;
+        break;
+      case HTML:
+        template = DSRHTMLTEMPLATE;
+        break;
+      default:
+        throw new IOException("Unsupported DSR Response Format: " + format.toString());
     }
-    try (InputStream stream = drq.getServletContext().getResourceAsStream(template)) {
+    String templatepath = drq.getResourcePath(template);
+    try (InputStream stream = new FileInputStream(templatepath)) {
       int ch;
-      while((ch = stream.read()) >= 0) {buf.append((char)ch);}
+      while ((ch = stream.read()) >= 0) {
+        buf.append((char) ch);
+      }
     }
     return buf.toString();
   }
 
   protected void substitute(StringBuilder buf, String macro, String value) {
     int from = 0;
-    String tag = "${"+macro+"}";
+    String tag = "${" + macro + "}";
     int taglen = tag.length();
     int valuelen = value.length();
-    for(;;) {
-	int index = buf.indexOf(tag,from);
-	if (index < 0) break;
-	buf.replace(index,index+taglen,value);
-	from = index+valuelen;
+    for (;;) {
+      int index = buf.indexOf(tag, from);
+      if (index < 0)
+        break;
+      buf.replace(index, index + taglen, value);
+      from = index + valuelen;
     }
   }
 

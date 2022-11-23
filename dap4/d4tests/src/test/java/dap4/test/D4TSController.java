@@ -46,24 +46,4 @@ public class D4TSController extends D4TSServlet {
     super.handleRequest(req, res);
   }
 
-  @Override
-  public String getResourcePath(DapRequest drq, String location) throws DapException {
-    String prefix = drq.getResourceRoot();
-    if (prefix == null)
-      throw new DapException("Cannot find location resource: " + location).setCode(DapCodes.SC_NOT_FOUND);
-    location = DapUtil.canonicalpath(location);
-    String datasetfilepath = DapUtil.canonjoin(prefix, location);
-    // See if it really exists and is readable and of proper type
-    File dataset = new File(datasetfilepath);
-    if (!dataset.exists()) {
-      String msg = String.format("Requested file does not exist: prefix=%s location=%s datasetfilepath=%s", prefix,
-          location, datasetfilepath);
-      throw new DapException(msg).setCode(HttpServletResponse.SC_NOT_FOUND);
-    }
-    if (!dataset.canRead())
-      throw new DapException("Requested file not readable: " + datasetfilepath)
-          .setCode(HttpServletResponse.SC_FORBIDDEN);
-    return datasetfilepath;
-  }
-
 }

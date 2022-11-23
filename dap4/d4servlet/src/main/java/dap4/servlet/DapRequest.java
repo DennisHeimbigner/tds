@@ -65,7 +65,11 @@ public class DapRequest {
   protected ByteOrder order = ByteOrder.nativeOrder();
   protected ChecksumMode checksummode = null;
 
+  // path from URL relative to the Servlet
   protected String datasetpath = null;
+
+  // The last path element from datasetpath
+  protected String dataset = null;
 
   //////////////////////////////////////////////////
   // Constructor(s)
@@ -115,36 +119,49 @@ public class DapRequest {
     } catch (URISyntaxException e) {
       throw new IOException(e);
     }
-    this.datasetpath = request.getPathInfo();
+    this.datasetpath = request.getServletPath();
+    if(this.datasetpath.equals("/") || this.datasetpath.equals(""))
+      this.datasetpath = null; // canonical value
     if (this.datasetpath == null) {
       // Eventually make this a capabilities request
       this.mode = RequestMode.CAPABILITIES;
     } else {
-      // Decompose path by '.'
-      String[] pieces = this.datasetpath.split("[.]");
-      // Search backward looking for the mode (dmr or dap)
-      // meanwhile capturing the format extension
-      int modepos = 0;
-      for (int i = pieces.length - 1; i >= 1; i--) {// ignore first piece
-        String ext = pieces[i];
-        // We assume that the set of response formats does not interset the set of request modes
-        RequestMode mode = RequestMode.modeFor(ext);
-        ResponseFormat format = ResponseFormat.formatFor(ext);
-        if (mode != null) {
-          // Stop here
+      String path = this.datasetpath;
+      // Break dataset path into prefix/ + dataset
+      int index = path.lastIndexOf('/');
+      if(index < 0) index = 0;
+      String prefix = path.substring(0, index);
+      String file = path.substring(index, path.length());
+      if(file.length() > 0 && file.charAt(0) == '/')
+        file = file.substring(1,file.length());
+      for(; ; ) { // Iterate until we find a non-mode|format extension or no extension
+        // Decompose dataset by '.'
+        index = file.lastIndexOf('.');
+        if(index < 0) index = file.length();
+        String extension = file.substring(index, file.length());
+        if(extension == null || extension.equals("")) break;
+        // Figure out what this extension represents
+        int modepos = 0;
+        // We assume that the set of response formats does not intersect the set of request modes
+        RequestMode mode = RequestMode.modeFor(extension);
+        ResponseFormat format = ResponseFormat.formatFor(extension);
+        if(mode == null && format == null) break; // stop here
+        if(mode != null) {
+          if(this.mode != null)
+            throw new DapException("Multiple request modes specified: " + extension)
+                    .setCode(HttpServletResponse.SC_BAD_REQUEST);
           this.mode = mode;
-          modepos = i;
-          break;
-        } else if (format != null) {
-          if (this.format != null)
-            throw new DapException("Multiple response formats specified: " + ext)
-                .setCode(HttpServletResponse.SC_BAD_REQUEST);
+        } else if(format != null) {
+          if(this.format != null)
+            throw new DapException("Multiple response formats specified: " + extension)
+                    .setCode(HttpServletResponse.SC_BAD_REQUEST);
           this.format = format;
         }
+        file = file.substring(0,index); // Remove consumed extension
       }
-      // Set the datasetpath to the entire path before the mode defining extension.
-      if (modepos > 0)
-        this.datasetpath = DapUtil.join(pieces, ".", 0, modepos);
+      // Set the final global values
+      this.dataset = file;
+      this.datasetpath = prefix + "/" + this.dataset;
     }
 
     if (this.mode == null)
@@ -175,6 +192,7 @@ public class DapRequest {
   public ByteOrder getOrder() {
     return this.order;
   }
+
   public ChecksumMode getChecksumMode() {
     return this.checksummode;
   }
@@ -199,8 +217,13 @@ public class DapRequest {
     return this.xuri.getOriginal();
   }
 
-  public String getDataset() {
+  public String getDatasetPath() {
     return this.datasetpath;
+  }
+
+  public String getDataset() {
+    // Strip off any leading prefix
+    return this.dataset;
   }
 
   public ServletContext getServletContext() {
@@ -234,16 +257,12 @@ public class DapRequest {
   }
 
   public String getResourcePath(String relpath) throws IOException {
-    if(relpath.length() == 0 || (relpath.charAt(0) != '/' && relpath.charAt(0) != '\\'))
+    if (relpath.length() == 0 || (relpath.charAt(0) != '/' && relpath.charAt(0) != '\\'))
       relpath = '/' + relpath;
     String servletpath = this.getServletContext().getResource("/").getPath();
-    String path = servletpath+"WEB-INF/resources" + relpath;
+    String path = servletpath + "WEB-INF/resources" + relpath;
     path = DapUtil.canonicalpath(path);
     return path;
-  }
-
-  public String getDatasetPath() {
-    return this.datasetpath;
   }
 
   static String makeQueryString(HttpServletRequest req) {

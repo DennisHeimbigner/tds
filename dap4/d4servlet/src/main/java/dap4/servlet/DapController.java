@@ -12,7 +12,6 @@ import dap4.core.data.DSP;
 import dap4.core.dmr.*;
 import dap4.core.util.*;
 import dap4.dap4lib.*;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -160,11 +159,11 @@ abstract public class DapController extends HttpServlet {
       initialize();
     DapRequest daprequest = getRequestState(req, res);
     String url = daprequest.getOriginalURL();
-    if(DEBUG) {
-    StringBuilder info = new StringBuilder("doGet():");
-    info.append(" dataset = ");
-    info.append(" url = ");
-    info.append(url);
+    if (DEBUG) {
+      StringBuilder info = new StringBuilder("doGet():");
+      info.append(" dataset = ");
+      info.append(" url = ");
+      info.append(url);
       System.err.println("DAP4 Servlet: processing url: " + daprequest.getOriginalURL());
     }
     DapContext dapcxt = new DapContext();
@@ -189,8 +188,8 @@ abstract public class DapController extends HttpServlet {
       doFavicon(FAVICON, dapcxt);
       return;
     }
-
-    String datasetpath = DapUtil.nullify(DapUtil.canonicalpath(daprequest.getDataset()));
+    String datasetpath = daprequest.getDatasetPath();
+     datasetpath = DapUtil.nullify(DapUtil.canonicalpath(datasetpath));
     try {
       if (datasetpath == null) {
         // This is the case where a request was made without a dataset;
@@ -248,8 +247,8 @@ abstract public class DapController extends HttpServlet {
 
   protected void doDSR(DapRequest drq, DapContext cxt) throws IOException {
     try {
-      DapDSR dsrbuilder = new DapDSR(drq,cxt);
-      String dsr = dsrbuilder.generate(drq.getFormat(),drq.getDataset());
+      DapDSR dsrbuilder = new DapDSR(drq, cxt);
+      String dsr = dsrbuilder.generate(drq.getFormat(), drq.getDataset());
       OutputStream out = drq.getOutputStream();
       addCommonHeaders(drq);// Add relevant headers
       // Wrap the outputstream with a Chunk writer
@@ -405,7 +404,7 @@ abstract public class DapController extends HttpServlet {
       format = ResponseFormat.NONE;
     DapProtocol.ContentType contentheaders = DapProtocol.contenttypes.get(drq.getMode());
     String header = null;
-    if(contentheaders != null)
+    if (contentheaders != null)
       header = contentheaders.getFormat(format);
     if (header != null) {
       header = header + "; charset=utf-8";

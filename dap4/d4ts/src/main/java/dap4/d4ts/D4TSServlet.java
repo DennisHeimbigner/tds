@@ -119,9 +119,7 @@ public class D4TSServlet extends DapController {
   @Override
   public String getResourcePath(DapRequest drq, String location) throws DapException {
     try {
-      if(location.endsWith("t.nc"))
-      return "d:/git/tds.fork/dap4/d4tests/src/test/data/resources/testfiles/t.nc";
-      else return drq.getResourcePath(location);
+      return drq.getResourcePath(location);
     } catch (IOException ioe) {
       throw new DapException(ioe);
     }

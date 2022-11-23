@@ -18,17 +18,6 @@ import org.apache.http.HttpVersion;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.message.BasicHttpResponse;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.mock.web.MockServletContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.test.web.servlet.setup.StandaloneMockMvcBuilder;
 import thredds.test.util.TdsTestDir;
 import thredds.test.util.TdsUnitTestCommon;
 import thredds.core.DatasetManager;
@@ -49,8 +38,6 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 
-@ContextConfiguration
-@WebAppConfiguration("file:src/test/data")
 abstract public class DapSvcTestCommon extends TdsUnitTestCommon {
 
   //////////////////////////////////////////////////
@@ -433,18 +420,7 @@ abstract public class DapSvcTestCommon extends TdsUnitTestCommon {
     return this.dap4resourcedir;
   }
 
-  /**
-   * Unfortunately, mock does not appear to always
-   * do proper initialization
-   */
-  static protected void mockSetup() {
-    TdsRequestedDataset.setDatasetManager(new DatasetManager());
-  }
-
   static protected void testSetup() {
-    DapController.TESTING = true;
-    DapCache.dspregistry.register(RawDSP.class, DSPRegistry.FIRST);
-    DapCache.dspregistry.register(CDMDSP.class, DSPRegistry.LAST);
     try {
       // Always prefer Nc4Iosp over HDF5
       // NetcdfFiles.iospDeRegister(NC4IOSP);

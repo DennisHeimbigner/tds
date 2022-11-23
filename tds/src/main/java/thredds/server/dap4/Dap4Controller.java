@@ -68,7 +68,7 @@ public class Dap4Controller extends DapController {
 
   @RequestMapping("**")
   public void handleRequest(HttpServletRequest req, HttpServletResponse res) throws IOException {
-    //throw new UnsupportedOperationException("DAP4 is not currently functional, but we are working on it!");
+    // throw new UnsupportedOperationException("DAP4 is not currently functional, but we are working on it!");
     super.handleRequest(req, res);
   }
 
@@ -125,7 +125,7 @@ public class Dap4Controller extends DapController {
     }
     String realpath = url.getPath();
     File f = new File(realpath);
-    if(!f.exists() || !f.canRead())
+    if (!f.exists() || !f.canRead())
       throw new DapException("Not found: " + location).setCode(DapCodes.SC_NOT_FOUND);
     return realpath;
   }

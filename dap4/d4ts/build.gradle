@@ -12,12 +12,13 @@ dependencies {
     implementation project(":dap4:dap4-servlet")
     providedCompile "javax.servlet:javax.servlet-api:${depVersion.javaxServletApi}"
 
-    implementation 'org.slf4j:slf4j-api'
+    compileOnly 'org.slf4j:slf4j-api'
 
     runtime 'org.apache.logging.log4j:log4j-slf4j-impl'
     runtime 'org.apache.logging.log4j:log4j-web'
-    implementation 'org.slf4j:slf4j-api'
-//  testRuntime 'ch.qos.logback:logback-classic'
+
+    compileOnly 'org.slf4j:slf4j-api'
+    testRuntime 'ch.qos.logback:logback-classic'
 }
 
 // This specifies the resources from ":dap4:d4tests" that we need to include in the d4ts war and inplaceWebapp.
@@ -27,9 +28,10 @@ def d4testsResourcesCopySpec = copySpec {
     from (new File(d4testsResourcesDir, 'favicon.ico')) {
         into('WEB-INF/')
     }
-    from(new File(d4testsResourcesDir, "testfiles/")) {
+    from(d4testsResourcesDir) {
         into('WEB-INF/resources/')
         include('*.template')
+        include('Unidata_logo.png')
     }
     from (new File(d4testsResourcesDir, "testfiles/")) {
         into('WEB-INF/resources/testfiles/')
