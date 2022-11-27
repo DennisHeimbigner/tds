@@ -26,7 +26,7 @@ dependencies {
 
     // dap4
     // defined in tds-platform as well, but using runtime config
-    api 'org.apache.logging.log4j:log4j-web' // api because of :dap4:d4tests)
+//    api 'org.apache.logging.log4j:log4j-web' // api because of :dap4:d4tests)
 
     // threddsIso
     api 'EDS:tds-plugin:2.4.0-SNAPSHOT' // api because of :it

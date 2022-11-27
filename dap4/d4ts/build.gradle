@@ -23,28 +23,22 @@ dependencies {
 
 // This specifies the resources from ":dap4:d4tests" that we need to include in the d4ts war and inplaceWebapp.
 def d4testsResourcesCopySpec = copySpec {
-   File d4testsResourcesDir = project(":dap4:d4tests").file('src/test/data/resources')
+   File d4tsResourcesDir = project(":dap4:d4ts").file('src/main/webapp/WEB-INF')
 
-    from (new File(d4testsResourcesDir, 'favicon.ico')) {
+/*These are already in place
+
+    from(d4tsResourcesDir) {
         into('WEB-INF/')
+        include('dsr.xml.template')
+        include('dsr.html.template')
+        include('frontpage.html.template')
+        include('favicon.ico')
     }
-    from(d4testsResourcesDir) {
-        into('WEB-INF/resources/')
-        include('*.template')
-        include('Unidata_logo.png')
-    }
-    from (new File(d4testsResourcesDir, "testfiles/")) {
-        into('WEB-INF/resources/testfiles/')
+    from (new File(d4tsResourcesDir, "testfiles/")) {
+        into('WEB-INF/testfiles/')
         include('*.nc')
-        include('*.hdf5')
-        include('*.raw')
     }
-    /* ignore for now
-    from(new File(d4testsResourcesDir, "testfiles/dmr/")) {
-        into('WEB-INF/resources/testfiles/dmr/')
-        include('*.dmr')
-    }
-    */
+*/
 }
 
 

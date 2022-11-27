@@ -23,8 +23,6 @@ import java.nio.charset.Charset;
 import java.util.Map;
 
 abstract public class DapController extends HttpServlet {
-  // Provide a way for test programs to pass info into the controller
-  static public boolean TESTING = false;
 
   //////////////////////////////////////////////////
   // Constants
@@ -77,6 +75,12 @@ abstract public class DapController extends HttpServlet {
 
   protected boolean initialized = false; // Was initialize() called?
 
+  // Cache the value of getWebDontentRoot()
+  protected String webContentRoot = null;
+
+  // Cache the value of getTestDataRoot()
+  protected String testDataRoot = null;
+
   //////////////////////////////////////////////////
   // Constructor(s)
 
@@ -106,18 +110,6 @@ abstract public class DapController extends HttpServlet {
   abstract protected void doCapabilities(DapRequest drq, DapContext cxt) throws IOException;
 
   /**
-   * Convert a URL path into an absolute file path
-   * Note that it is assumed than any leading servlet prefix has been removed.
-   *
-   * @param drq dap request
-   * @param location suffix of url path
-   * @return
-   * @throws IOException
-   */
-
-  abstract public String getResourcePath(DapRequest drq, String location) throws DapException;
-
-  /**
    * Get the maximum # of bytes per request
    *
    * @return size
@@ -131,6 +123,33 @@ abstract public class DapController extends HttpServlet {
    */
   abstract public String getServletID();
 
+  /**
+   * The DAP4 code requires access to two absolute paths.
+   * 1. The path to a directory containing web content:
+   * - .template files
+   * - .ico files
+   * 2. The path to the directory containing the test data
+   */
+
+  /**
+   * Get the absolute address of the web-content directory
+   *
+   * @param drq dap request
+   * @return the web content directory absolute path
+   * @throws IOException
+   */
+  abstract protected String getWebContentRoot(DapRequest drq) throws DapException;
+
+  /**
+   * Convert a URL path for a dataset into an absolute file path
+   *
+   * @param drq dap request
+   * @param location suffix of url path
+   * @return path in a string builder so caller can extend.
+   * @throws IOException
+   */
+  abstract protected String getResourcePath(DapRequest drq, String location) throws DapException;
+
   //////////////////////////////////////////////////////////
 
   public void init() {
@@ -143,12 +162,15 @@ abstract public class DapController extends HttpServlet {
    * Initialize servlet/controller
    */
   public void initialize() {
+    if (this.initialized)
+      return;
     this.initialized = true;
   }
 
 
   //////////////////////////////////////////////////////////
   // Accessors
+
 
   //////////////////////////////////////////////////////////
   // Primary Controller Entry Point
@@ -184,12 +206,17 @@ abstract public class DapController extends HttpServlet {
       }
     }
 
+    if (this.webContentRoot == null) {
+      this.webContentRoot = getWebContentRoot(daprequest);
+      this.webContentRoot = DapUtil.canonicalpath(this.webContentRoot);
+    }
+
     if (url.endsWith(FAVICON)) {
       doFavicon(FAVICON, dapcxt);
       return;
     }
     String datasetpath = daprequest.getDatasetPath();
-     datasetpath = DapUtil.nullify(DapUtil.canonicalpath(datasetpath));
+    datasetpath = DapUtil.nullify(DapUtil.canonicalpath(datasetpath));
     try {
       if (datasetpath == null) {
         // This is the case where a request was made without a dataset;
@@ -248,7 +275,7 @@ abstract public class DapController extends HttpServlet {
   protected void doDSR(DapRequest drq, DapContext cxt) throws IOException {
     try {
       DapDSR dsrbuilder = new DapDSR(drq, cxt);
-      String dsr = dsrbuilder.generate(drq.getFormat(), drq.getDataset());
+      String dsr = dsrbuilder.generate(drq.getFormat(), drq.getDatasetPath(), drq.getDataset());
       OutputStream out = drq.getOutputStream();
       addCommonHeaders(drq);// Add relevant headers
       // Wrap the outputstream with a Chunk writer
@@ -269,7 +296,7 @@ abstract public class DapController extends HttpServlet {
 
   protected void doDMR(DapRequest drq, DapContext cxt) throws IOException {
     // Convert the url to an absolute path
-    String realpath = getResourcePath(drq, drq.getDatasetPath());
+    String realpath = drq.getResourcePath(drq.getDatasetPath());
 
     DSP dsp = DapCache.open(realpath, cxt);
     DapDataset dmr = dsp.getDMR();
@@ -322,7 +349,7 @@ abstract public class DapController extends HttpServlet {
 
   protected void doData(DapRequest drq, DapContext cxt) throws IOException {
     // Convert the url to an absolute path
-    String realpath = getResourcePath(drq, drq.getDatasetPath());
+    String realpath = drq.getResourcePath(drq.getDatasetPath());
 
     DSP dsp = DapCache.open(realpath, cxt);
     if (dsp == null)

@@ -30,8 +30,7 @@ public class FrontPage {
 
   static final boolean DUMPFILELIST = false;
 
-  static final String FPTEMPLATE = "/frontpage.html.template";
-  static final String UNIDATALOGO = "Unidata_logo.png";
+  static final String FPTEMPLATE = "/templates/dap4.frontpage.html.template";
 
   static final String DFALTTESTSERVER = "remotetest.unidata.ucar.edu";
 
@@ -47,21 +46,21 @@ public class FrontPage {
 
   static public class Root {
     public String prefix;
+
     public String dir;
+
     public List<FileSource> files;
 
     public String toString() {
       return String.format("{'%s/%s'}", this.prefix, this.dir);
     }
 
-    public Root(String dir, String prefix) {
-      this.dir = dir;
+    public Root(String prefix, String dir) {
       this.prefix = DapUtil.canonicalpath(prefix);
+      this.dir = dir;
     }
 
-    public String getFullPath() {
-      return DapUtil.canonjoin(this.prefix, this.dir);
-    }
+    public String getFullPath() {return this.prefix + "/" + this.dir;};
 
     public void setFiles(List<FileSource> files) {
       this.files = files;
@@ -112,25 +111,24 @@ public class FrontPage {
       buildFileList(root);
     }
     // Figure out the test server
-    if(this.dap4TestServer == null) {
+    if (this.dap4TestServer == null) {
       try {
         URL url = new URL(drq.getRequest().getRequestURL().toString());
         this.dap4TestServer = url.getHost();
-        if(url.getPort() > 0)
+        if (url.getPort() > 0)
           this.dap4TestServer += ":" + url.getPort();
       } catch (MalformedURLException mue) {
         this.dap4TestServer = null;
       }
     }
-    if(this.dap4TestServer == null)
+    if (this.dap4TestServer == null)
       this.dap4TestServer = DFALTTESTSERVER;
 
     // Get the template and fill in selected macros
     try {
       this.frontpage = initialPage(this.dap4TestServer);
     } catch (IOException ioe) {
-      throw new DapException(ioe)
-              .setCode(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      throw new DapException(ioe).setCode(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
   }
   //////////////////////////////////////////////////
@@ -176,7 +174,7 @@ public class FrontPage {
         });
         if (DUMPFILELIST) {
           for (File x : matches) {
-            System.err.printf("file: %s/%s%n", rootinfo.prefix, x.getName());
+            System.err.printf("file: %s/%s%n", rootinfo.dir, x.getName());
           }
         }
         FileSource clone = new FileSource(src.ext, src.tag);
@@ -198,32 +196,32 @@ public class FrontPage {
     for (Root root : this.roots) {
       try {
         for (FileSource src : root.files) {
-	      StringBuilder allrows = new StringBuilder();
+          StringBuilder allrows = new StringBuilder();
           for (File file : src.files) {
             String name = file.getName();
             String url = String.format(HTML_URL_FORMAT, this.dap4TestServer, root.dir, name);
-	    StringBuilder row = new StringBuilder(HTML_ROW);
-	    substitute(row,"dataset",name);
-	    substitute(row,"url",url);
+            StringBuilder row = new StringBuilder(HTML_ROW);
+            substitute(row, "dataset", name);
+            substitute(row, "url", url);
             allrows.append(row);
           }
-	  StringBuilder source = new StringBuilder(HTML_SOURCE);
-          substitute(source,"source",src.tag);
-          substitute(source,"rows",allrows.toString());
-	  sources.append(source);
+          StringBuilder source = new StringBuilder(HTML_SOURCE);
+          substitute(source, "source", src.tag);
+          substitute(source, "rows", allrows.toString());
+          sources.append(source);
         }
       } catch (Exception e) {
         sendtrace(drq, e);
       }
     }
-    substitute(this.frontpage,"sources",sources.toString());    
+    substitute(this.frontpage, "sources", sources.toString());
     return this.frontpage.toString();
   }
 
   protected StringBuilder initialPage(String testserver) throws IOException {
     // Get the FrontPage template
     StringBuilder page = new StringBuilder();
-    String template = drq.getResourcePath(FPTEMPLATE);
+    String template = drq.getWebContentPath(FPTEMPLATE);
     try (InputStream stream = new FileInputStream(template)) {
       int ch;
       while ((ch = stream.read()) >= 0) {
@@ -231,7 +229,7 @@ public class FrontPage {
       }
     }
     // Fill in initial parameters
-    substitute(page,"dap4TestServer",testserver);
+    substitute(page, "dap4TestServer", testserver);
     return page;
   }
 
@@ -310,12 +308,12 @@ public class FrontPage {
   //////////////////////////////////////////////////
   // HTML Text Pieces
   // (Remember that java does not allow Strings to cross lines)
+
   static final String HTML_URL_FORMAT = "http://%s/d4ts/%s/%s";
 
-  static final String HTML_SOURCE =
-"<h3>${source} Based Test Files</h3>\n<table>\n${rows}\n</table>";
+  static final String HTML_SOURCE = "<h3>${source} Based Test Files</h3>\n<table>\n${rows}\n</table>";
 
-  static final String HTML_ROW = 
-"<tr>\n<td halign='right'><b>${dataset}:</b></td>\n<td halign='center'><a href='${url}.dmr.xml'> DMR.XML </a></div></td>\n<td halign='center'><a href='${url}.dap'> DAP </a></div></td>\n<td halign='center'><a href='${url}.dsr.xml'> DSR.XML </a></div></td>\n<td halign='center'><a href='${url}.dsr.html'> DSR.HTML </a></div></td>\n</tr>\n";
+  static final String HTML_ROW =
+      "<tr>\n<td halign='right'><b>${dataset}:</b></td>\n<td halign='center'><a href='${url}.dmr.xml'> DMR.XML </a></div></td>\n<td halign='center'><a href='${url}.dap'> DAP </a></div></td>\n<td halign='center'><a href='${url}.dsr.xml'> DSR.XML </a></div></td>\n<td halign='center'><a href='${url}.dsr.html'> DSR.HTML </a></div></td>\n</tr>\n";
 
 } // FrontPage

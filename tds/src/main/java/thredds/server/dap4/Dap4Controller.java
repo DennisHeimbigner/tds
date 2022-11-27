@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import thredds.core.TdsRequestedDataset;
+import thredds.server.config.TdsContext;
 import ucar.nc2.NetcdfFile;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -38,6 +39,8 @@ public class Dap4Controller extends DapController {
   static final boolean DEBUG = false;
 
   static final boolean PARSEDEBUG = false;
+
+  static final String SERVICEID = "/dap4";
 
   // NetcdfDataset enhancement to use: need only coord systems
   // static Set<NetcdfDataset.Enhance> ENHANCEMENT = EnumSet.of(NetcdfDataset.Enhance.CoordSystems);
@@ -61,10 +64,13 @@ public class Dap4Controller extends DapController {
   }
 
   //////////////////////////////////////////////////
-  // Spring Elements
+  // Instance variables
 
   @Autowired
-  private ServletContext servletContext;
+  private TdsContext tdscontext;
+
+  //////////////////////////////////////////////////
+  // Spring Elements
 
   @RequestMapping("**")
   public void handleRequest(HttpServletRequest req, HttpServletResponse res) throws IOException {
@@ -102,33 +108,51 @@ public class Dap4Controller extends DapController {
 
   @Override
   public String getServletID() {
-    return "dap4";
+    String cp = tdscontext.getContextPath();
+    if (cp == null || cp.length() == 0)
+      cp = "dap4";
+    StringBuilder id = new StringBuilder(cp);
+    // Strip any trailing '/'
+    if (id.charAt(id.length() - 1) == '/')
+      id.deleteCharAt(id.length());
+    // ensure it starts with '/'
+    if (id.charAt(0) != '/')
+      id.insert(0,'/');
+    return id.toString();
   }
 
-  // There is a problem Spring under intellij when using mocking.
-  // See TestServlet for more info. In any case, if autowiring does
-  // not work, then TdsRequestedDataset.getLocationFromRequestPath
-  // will fail because it internal DatasetManager value will be null.
-  // Autowiring would have set it to non-null. So, check to see if
-  // the autowiring worked and if so use
-  // TdsRequestedDataset.getLocationFromRequestPath.
-  // Otherwise, compute the proper path from the drq.getResourceRoot.
-  // This is completely a hack until such time as we can get things
-  // to work under Intellij.
   @Override
-  public String getResourcePath(DapRequest drq, String location) throws DapException {
-    URL url = null;
-    try {
-      url = this.getServletContext().getResource(location);
-    } catch (MalformedURLException mue) {
-      throw new DapException(mue);
-    }
-    String realpath = url.getPath();
-    File f = new File(realpath);
-    if (!f.exists() || !f.canRead())
-      throw new DapException("Not found: " + location).setCode(DapCodes.SC_NOT_FOUND);
-    return realpath;
+  public String getWebContentRoot(DapRequest drq) throws DapException {
+    File root = tdscontext.getServletRootDirectory();
+    if (!root.exists() || !root.canRead() || !root.isDirectory())
+      throw new DapException("Cannot locate WEB-INF root").setCode(DapCodes.SC_NOT_FOUND);
+    String rootpath = root.getAbsolutePath() + "/WEB-INF";
+    return DapUtil.canonicalpath(rootpath);
   }
+
+  /**
+   * Convert a URL path for a dataset into an absolute file path
+   *
+   * @param location suffix of url path
+   * @return path in a string builder so caller can extend.
+   * @throws IOException
+   */
+  public String getResourcePath(DapRequest drq, String location) throws DapException {
+    assert(location.charAt(0) == '/');
+    // Remove the leading service name, if any
+    if(location.startsWith(SERVICEID))
+      location = location.substring(SERVICEID.length());
+    String path = TdsRequestedDataset.getLocationFromRequestPath(location);
+    File f = new File(path);
+    if (!f.exists() || !f.canRead() || !f.isFile())
+      throw new DapException("Cannot locate resource: "+location).setCode(DapCodes.SC_NOT_FOUND);
+    return DapUtil.canonicalpath(path);
+  }
+
+
+
+
+
 
 }
 

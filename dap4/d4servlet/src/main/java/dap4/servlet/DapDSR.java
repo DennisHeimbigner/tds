@@ -5,17 +5,17 @@
 
 package dap4.servlet;
 
-import dap4.core.util.DapConstants;
-import dap4.core.util.DapContext;
-import dap4.core.util.IndentWriter;
-import dap4.core.util.ResponseFormat;
+import dap4.core.util.*;
 import dap4.dap4lib.DapProtocol;
 import dap4.dap4lib.RequestMode;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * Generate the DSR for a dataset.
@@ -29,11 +29,28 @@ public class DapDSR {
 
   static final boolean DEBUG = false;
 
-  static final String DSRXMLTEMPLATE = "/dsr.xml.template";
-  static final String DSRHTMLTEMPLATE = "/dsr.html.template";
+  static final String DSRXMLTEMPLATE = "/templates/dap4.dsr.xml.template";
+  static final String DSRHTMLTEMPLATE = "/templates/dap4.dsr.html.template";
+
+  static final String URL_FORMAT = "http://%s/%s/%s";
+
+  //////////////////////////////////////////////////
+  // Static Variables
+
+  static private String dap4TestServerPropName = "d4ts";
+  static public String dap4TestServer = null;; // mutable
+  static protected String servletprefix = null;
+  static protected String servletsuffix = null;
+
+  static {
+    String d4ts = System.getProperty(dap4TestServerPropName);
+    if (d4ts != null && d4ts.length() > 0)
+      dap4TestServer = d4ts;
+  }
 
   //////////////////////////////////////////////////
   // Instance Variables
+
   DapRequest drq;
   DapContext cxt;
 
@@ -43,19 +60,49 @@ public class DapDSR {
   public DapDSR(DapRequest drq, DapContext cxt) throws IOException {
     this.drq = drq;
     this.cxt = cxt;
+
+    // Figure out the test server
+    if (this.dap4TestServer == null) {
+      try {
+        URL url = new URL(drq.getRequest().getRequestURL().toString());
+        this.dap4TestServer = url.getHost();
+        if (url.getPort() > 0)
+          this.dap4TestServer += ":" + url.getPort();
+        this.servletprefix = drq.getRequest().getContextPath();
+        this.servletprefix = DapUtil.relativize(this.servletprefix);
+        this.servletsuffix = drq.getRequest().getServletPath();
+
+      } catch (MalformedURLException mue) {
+        throw new DapException(mue).setCode(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      }
+    }
+    if (this.dap4TestServer == null) {
+      throw new DapException("Cannot determine test server host").setCode(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    }
+    if (this.servletprefix == null) {
+      throw new DapException("Cannot determine test servlet prefix")
+          .setCode(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    }
+    if (this.servletsuffix == null) {
+      throw new DapException("Cannot determine test servlet suffix")
+          .setCode(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    }
   }
 
   //////////////////////////////////////////////////
   // API
 
-  public String generate(ResponseFormat format, String dataset) throws IOException {
-    // Get the DSR template
+  public String generate(ResponseFormat format, String datasetpath, String dataset) throws IOException {
+    // Normalize to relative path
+    datasetpath = DapUtil.relativize(datasetpath); // Get the DSR template
     String template = getTemplate(format);
-    String datasetname = dataset;
     StringBuilder dsr = new StringBuilder(template);
     substitute(dsr, "DAP_VERSION", DapConstants.X_DAP_VERSION);
     substitute(dsr, "DAP_SERVER", DapConstants.X_DAP_SERVER);
     substitute(dsr, "DATASET", dataset);
+    // Compute the URL
+    String url = String.format(URL_FORMAT, this.dap4TestServer, this.servletprefix, datasetpath);
+    substitute(dsr, "URL", url);
     return dsr.toString();
   }
 
@@ -73,7 +120,7 @@ public class DapDSR {
       default:
         throw new IOException("Unsupported DSR Response Format: " + format.toString());
     }
-    String templatepath = drq.getResourcePath(template);
+    String templatepath = drq.getWebContentPath(template);
     try (InputStream stream = new FileInputStream(templatepath)) {
       int ch;
       while ((ch = stream.read()) >= 0) {

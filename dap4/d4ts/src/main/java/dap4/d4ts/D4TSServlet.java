@@ -35,7 +35,7 @@ public class D4TSServlet extends DapController {
 
   static final boolean PARSEDEBUG = false;
 
-  static protected final String RESOURCEPATH = "WEB-INF/resources";
+  static final String RESOURCEPATH = "/testfiles";
 
   //////////////////////////////////////////////////
   // Type Decls
@@ -88,7 +88,7 @@ public class D4TSServlet extends DapController {
   @Override
   protected void doFavicon(String icopath, DapContext cxt) throws IOException {
     DapRequest drq = (DapRequest) cxt.get(DapRequest.class);
-    String favfile = getResourcePath(drq, icopath);
+    String favfile = drq.getResourcePath(icopath);
     if (favfile != null) {
       try (FileInputStream fav = new FileInputStream(favfile);) {
         byte[] content = DapUtil.readbinaryfile(fav);
@@ -117,22 +117,8 @@ public class D4TSServlet extends DapController {
   }
 
   @Override
-  public String getResourcePath(DapRequest drq, String location) throws DapException {
-    try {
-      return drq.getResourcePath(location);
-    } catch (IOException ioe) {
-      throw new DapException(ioe);
-    }
-  }
-
-  @Override
   public long getBinaryWriteLimit() {
     return DEFAULTBINARYWRITELIMIT;
-  }
-
-  @Override
-  public String getServletID() {
-    return "d4ts";
   }
 
   /**
@@ -146,14 +132,58 @@ public class D4TSServlet extends DapController {
     if (this.defaultroots == null) {
       // Figure out the directory containing
       // the files to display.
-      String pageroot;
-      pageroot = getResourcePath(drq, "");
-      if (pageroot == null)
-        throw new DapException("Cannot locate resources directory");
+      String testroot = drq.getResourcePath("/");
+      if (testroot == null)
+        throw new DapException("Cannot locate dataset  directory");
       this.defaultroots = new ArrayList<>();
-      this.defaultroots.add(new Root("testfiles", pageroot));
+      this.defaultroots.add(new Root(testroot,RESOURCEPATH));
     }
     return new FrontPage(this.defaultroots, drq);
+  }
+
+  @Override
+  public String getServletID() {
+    return "/d4ts";
+  }
+
+  @Override
+  public String getWebContentRoot(DapRequest drq) throws DapException {
+    try {
+      String servletpath = getServletContext().getResource("/").getPath();
+      String path = servletpath + "WEB-INF";
+      File f = new File(path);
+      if (!f.exists() || !f.canRead() || !f.isDirectory())
+        throw new DapException("Cannot find WEB-INF").setCode(DapCodes.SC_NOT_FOUND);
+      return path;
+    } catch (IOException ioe) {
+      throw new DapException(ioe);
+    }
+  }
+
+  /**
+   * Convert a URL path for a dataset into an absolute file path
+   *
+   * @param drq dap request
+   * @param location suffix of url path
+   * @return path in a string builder so caller can extend.
+   * @throws IOException
+   */
+  public String getResourcePath(DapRequest drq, String location) throws DapException {
+    try {
+      String root = getWebContentRoot(drq);
+      if (root == null)
+        throw new DapException("Cannot find WEB-INF").setCode(DapCodes.SC_NOT_FOUND);
+      StringBuilder path = new StringBuilder(DapUtil.canonicalpath(root));
+      if(location.charAt(0) != '/') path.append('/');
+      path.append(location);
+      String result = path.toString();
+      File f = new File(result);
+      if (!f.exists() || !f.canRead())
+        throw new DapException("Cannot find Resource path: " + result).setCode(DapCodes.SC_NOT_FOUND);
+      return result;
+    } catch (IOException ioe) {
+      throw new DapException(ioe).setCode(DapCodes.SC_NOT_FOUND);
+    }
   }
 
 }

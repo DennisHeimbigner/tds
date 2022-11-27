@@ -44,16 +44,12 @@ public class DapRequest {
 
   static final boolean DEBUG = false;
 
-  static public final String WEBINFPATH = "/WEB-INF";
-  static public final String RESOURCEDIRNAME = "resources";
-
-  static public final String CONSTRAINTTAG = "dap4.ce";
-
-  static public final ChecksumMode DEFAULTCSUM = ChecksumMode.NONE;
+  static protected final String WEBINFPATH = "WEB-INF";
+  static protected final String RESOURCEDIRNAME = "resources";
 
   //////////////////////////////////////////////////
   // Instance variables
-
+  protected DapController controller = null;
   protected HttpServletRequest request = null;
   protected HttpServletResponse response = null;
 
@@ -78,6 +74,7 @@ public class DapRequest {
       throws DapException {
     this.request = request;
     this.response = response;
+    this.controller = controller;
     try {
       parseURI(); // Pull Info from the URI
     } catch (IOException ioe) {
@@ -120,44 +117,46 @@ public class DapRequest {
       throw new IOException(e);
     }
     this.datasetpath = request.getServletPath();
-    if(this.datasetpath.equals("/") || this.datasetpath.equals(""))
+    if (this.datasetpath.equals("/") || this.datasetpath.equals(""))
       this.datasetpath = null; // canonical value
     if (this.datasetpath == null) {
-      // Eventually make this a capabilities request
       this.mode = RequestMode.CAPABILITIES;
     } else {
       String path = this.datasetpath;
       // Break dataset path into prefix/ + dataset
       int index = path.lastIndexOf('/');
-      if(index < 0) index = 0;
+      if (index < 0)
+        index = 0;
       String prefix = path.substring(0, index);
       String file = path.substring(index, path.length());
-      if(file.length() > 0 && file.charAt(0) == '/')
-        file = file.substring(1,file.length());
-      for(; ; ) { // Iterate until we find a non-mode|format extension or no extension
+      file = DapUtil.relativize(file);
+      for (;;) { // Iterate until we find a non-mode|format extension or no extension
         // Decompose dataset by '.'
         index = file.lastIndexOf('.');
-        if(index < 0) index = file.length();
+        if (index < 0)
+          index = file.length();
         String extension = file.substring(index, file.length());
-        if(extension == null || extension.equals("")) break;
+        if (extension == null || extension.equals(""))
+          break;
         // Figure out what this extension represents
         int modepos = 0;
         // We assume that the set of response formats does not intersect the set of request modes
         RequestMode mode = RequestMode.modeFor(extension);
         ResponseFormat format = ResponseFormat.formatFor(extension);
-        if(mode == null && format == null) break; // stop here
-        if(mode != null) {
-          if(this.mode != null)
+        if (mode == null && format == null)
+          break; // stop here
+        if (mode != null) {
+          if (this.mode != null)
             throw new DapException("Multiple request modes specified: " + extension)
-                    .setCode(HttpServletResponse.SC_BAD_REQUEST);
+                .setCode(HttpServletResponse.SC_BAD_REQUEST);
           this.mode = mode;
-        } else if(format != null) {
-          if(this.format != null)
+        } else if (format != null) {
+          if (this.format != null)
             throw new DapException("Multiple response formats specified: " + extension)
-                    .setCode(HttpServletResponse.SC_BAD_REQUEST);
+                .setCode(HttpServletResponse.SC_BAD_REQUEST);
           this.format = format;
         }
-        file = file.substring(0,index); // Remove consumed extension
+        file = file.substring(0, index); // Remove consumed extension
       }
       // Set the final global values
       this.dataset = file;
@@ -205,6 +204,39 @@ public class DapRequest {
     return response;
   }
 
+  public String getWebContentRoot() throws DapException {
+    return controller.getWebContentRoot(this);
+  }
+
+  public String getServletID() throws DapException {
+    return controller.getServletID();
+  }
+  /**
+   * Convert a URL path for a dataset into an absolute file path
+   *
+   * @param location suffix of url path
+   * @return path in a string builder so caller can extend.
+   * @throws IOException
+   */
+    public String getResourcePath(String location) throws DapException {
+      return controller.getResourcePath(this,location);
+    }
+
+  /**
+   * Convert a URL path for a web-content related file into an absolute file path
+   *
+   * @param location suffix of url path
+   * @return path in a string builder so caller can extend.
+   * @throws IOException
+   */
+  public String getWebContentPath(String location) throws DapException {
+    String path = getWebContentRoot();
+    path = DapUtil.canonicalpath(path);
+    location = DapUtil.relativize(location);
+    path += "/" + location;
+    return path;
+  }
+
   public OutputStream getOutputStream() throws IOException {
     return response.getOutputStream();
   }
@@ -224,10 +256,6 @@ public class DapRequest {
   public String getDataset() {
     // Strip off any leading prefix
     return this.dataset;
-  }
-
-  public ServletContext getServletContext() {
-    return this.request.getServletContext();
   }
 
   public RequestMode getMode() {
@@ -254,15 +282,6 @@ public class DapRequest {
 
   public Map<String, String> getQueries() {
     return this.xuri.getQueryFields();
-  }
-
-  public String getResourcePath(String relpath) throws IOException {
-    if (relpath.length() == 0 || (relpath.charAt(0) != '/' && relpath.charAt(0) != '\\'))
-      relpath = '/' + relpath;
-    String servletpath = this.getServletContext().getResource("/").getPath();
-    String path = servletpath + "WEB-INF/resources" + relpath;
-    path = DapUtil.canonicalpath(path);
-    return path;
   }
 
   static String makeQueryString(HttpServletRequest req) {
