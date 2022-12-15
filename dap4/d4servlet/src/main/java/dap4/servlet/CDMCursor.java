@@ -55,19 +55,40 @@ public class CDMCursor implements DataCursor {
   //////////////////////////////////////////////////
   // Get/Set
 
-  public DataCursor.Scheme getScheme() {return this.scheme;}
-  public CDMDAP4 getCDMDAP4() {return this.cdmwrap;}
-  public DapNode getTemplate() {return this.template;}
-  public CDMCursor getContainer() {return this.container;}
-  public long getRecordIndex() {return this.recordindex;}
-  public long getRecordCount() {return this.recordcount;}
-  public Index getIndex() {return this.index;}
+  public DataCursor.Scheme getScheme() {
+    return this.scheme;
+  }
+
+  public CDMDAP4 getCDMDAP4() {
+    return this.cdmwrap;
+  }
+
+  public DapNode getTemplate() {
+    return this.template;
+  }
+
+  public CDMCursor getContainer() {
+    return this.container;
+  }
+
+  public long getRecordIndex() {
+    return this.recordindex;
+  }
+
+  public long getRecordCount() {
+    return this.recordcount;
+  }
+
+  public Index getIndex() {
+    return this.index;
+  }
 
   public CDMCursor setRecordIndex(long index) {
     this.recordindex = index;
     return this;
 
   }
+
   public CDMCursor setRecordCount(long count) {
     this.recordindex = count;
     return this;
@@ -178,14 +199,14 @@ public class CDMCursor implements DataCursor {
   public boolean isAtomic() {
     boolean is = this.scheme == Scheme.ATOMIC;
     assert !is || getTemplate().getSort() == DapSort.ATOMICTYPE || (getTemplate().getSort() == DapSort.VARIABLE
-            && ((DapVariable) getTemplate()).getBaseType().getTypeSort().isAtomic());
+        && ((DapVariable) getTemplate()).getBaseType().getTypeSort().isAtomic());
     return is;
   }
 
   public boolean isCompound() {
     boolean is = (this.scheme == Scheme.SEQUENCE || this.scheme == Scheme.STRUCTURE);
     assert !is || getTemplate().getSort() == DapSort.SEQUENCE || getTemplate().getSort() == DapSort.STRUCTURE
-            || (getTemplate().getSort() == DapSort.VARIABLE
+        || (getTemplate().getSort() == DapSort.VARIABLE
             && ((DapVariable) getTemplate()).getBaseType().getTypeSort().isCompoundType());
     return is;
   }
@@ -193,7 +214,7 @@ public class CDMCursor implements DataCursor {
   public boolean isCompoundArray() {
     boolean is = (this.scheme == Scheme.SEQARRAY || this.scheme == Scheme.STRUCTARRAY);
     assert !is || getTemplate().getSort() == DapSort.SEQUENCE || getTemplate().getSort() == DapSort.STRUCTURE
-            || (getTemplate().getSort() == DapSort.VARIABLE
+        || (getTemplate().getSort() == DapSort.VARIABLE
             && ((DapVariable) getTemplate()).getBaseType().getTypeSort().isCompoundType());
     return is;
   }
@@ -213,7 +234,7 @@ public class CDMCursor implements DataCursor {
     return scheme;
   }
 
- public CDMCursor readRecord(long i) throws DapException {
+  public CDMCursor readRecord(long i) throws DapException {
     if (this.scheme != scheme.SEQUENCE)
       throw new DapException("Attempt to read record from non-sequence cursor");
     if (i < 0 || i >= this.recordcount)
@@ -224,6 +245,22 @@ public class CDMCursor implements DataCursor {
     c.setRecordIndex(i);
     return c;
   }
+
+  @Override
+  public int fieldIndex(String name) throws DapException {
+    DapStructure ds;
+    if (getTemplate().getSort().isCompound())
+      ds = (DapStructure) getTemplate();
+    else if (getTemplate().getSort().isVar() && (((DapVariable) getTemplate()).getBaseType().getSort().isCompound()))
+      ds = (DapStructure) ((DapVariable) getTemplate()).getBaseType();
+    else
+      throw new DapException("Attempt to get field name on non-compound object");
+    int i = ds.indexByName(name);
+    if (i < 0)
+      throw new DapException("Unknown field name: " + name);
+    return i;
+  }
+
 
   //////////////////////////////////////////////////
   // Support Methods

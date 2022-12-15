@@ -155,7 +155,7 @@ public class DapSerializer {
       DapVariable field = fields.get(i);
       if (!this.ce.references(field))
         continue; // not in the view
-      DataCursor df = (DataCursor) instance.readField(i);
+      CDMCursor df = (CDMCursor) instance.readField(i);
       writeVariable(df, dst);
     }
   }
@@ -227,7 +227,7 @@ public class DapSerializer {
       DapVariable field = fields.get(i);
       if (!this.ce.references(field))
         continue; // not in the view
-      DataCursor df = (DataCursor) record.readField(i);
+      CDMCursor df = (CDMCursor) record.readField(i);
       writeVariable(df, dst);
     }
   }

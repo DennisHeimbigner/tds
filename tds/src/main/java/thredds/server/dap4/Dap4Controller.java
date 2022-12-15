@@ -5,12 +5,10 @@
 
 package thredds.server.dap4;
 
-import dap4.core.data.DSPRegistry;
 import dap4.core.util.DapContext;
 import dap4.core.util.DapException;
 import dap4.core.util.DapUtil;
 import dap4.dap4lib.DapCodes;
-import dap4.servlet.DSPFactory;
 import dap4.servlet.DapCache;
 import dap4.servlet.DapController;
 import dap4.servlet.DapRequest;
@@ -40,24 +38,6 @@ public class Dap4Controller extends DapController {
 
   // NetcdfDataset enhancement to use: need only coord systems
   // static Set<NetcdfDataset.Enhance> ENHANCEMENT = EnumSet.of(NetcdfDataset.Enhance.CoordSystems);
-
-  //////////////////////////////////////////////////
-  // Type Decls
-
-  static class Dap4Factory extends DSPFactory {
-
-    public Dap4Factory() {
-      // For TDS, we only need to register one DSP type: CDMDSP.
-      // This is because we will always serve only NetcdfFile objects.
-      // See D4TSServlet for a multiple registration case.
-      DapCache.dspregistry.register(CDMDAP4.class, DSPRegistry.LAST);
-    }
-
-  }
-
-  static {
-    DapCache.setFactory(new Dap4Factory());
-  }
 
   //////////////////////////////////////////////////
   // Instance variables

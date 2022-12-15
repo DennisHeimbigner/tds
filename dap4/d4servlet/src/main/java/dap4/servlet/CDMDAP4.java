@@ -29,8 +29,7 @@ import ucar.nc2.write.CDLWriter;
  * object to look like DataVariable objects.
  */
 
-public class CDMDAP4
-{
+public class CDMDAP4 {
 
   //////////////////////////////////////////////////
   // Constants
@@ -752,16 +751,17 @@ public class CDMDAP4
             // Ignore maps where the variable is a structure or sequence
             // and the map variable is a field within that structure/sequence.
             boolean ignoremap = false;
-            if(!mapvar.isTopLevel()) {
+            if (!mapvar.isTopLevel()) {
               DapNode parenttype = mapvar.getContainer();
-              assert(dapvar.getSort() == DapSort.VARIABLE);
-              DapVariable parent = (DapVariable)dapvar;
-              assert(parent.getSort() == DapSort.STRUCTURE || parent.getSort() == DapSort.SEQUENCE);
-              assert(parent.getBaseType() == parenttype);
-              Variable cdmparent = (Variable)varmap.get(parent);
-              if(cdmparent == CDMUtil.unwrap(sds)) ignoremap = true;
+              assert (dapvar.getSort() == DapSort.VARIABLE);
+              DapVariable parent = (DapVariable) dapvar;
+              assert (parent.getSort() == DapSort.STRUCTURE || parent.getSort() == DapSort.SEQUENCE);
+              assert (parent.getBaseType() == parenttype);
+              Variable cdmparent = (Variable) varmap.get(parent);
+              if (cdmparent == CDMUtil.unwrap(sds))
+                ignoremap = true;
             }
-            if(!ignoremap) {
+            if (!ignoremap) {
               DapMap map = (DapMap) dmrfactory.newMap(mapvar.getShortName());
               dapvar.addMap(map);
             }
@@ -802,7 +802,7 @@ public class CDMDAP4
       // Ideally, we should test the types of the enums,
       // but, unfortunately, the var enum is always enum4.
       // if(target.getBaseType() != varenum.getBaseType())
-      //    continue;
+      // continue;
       Map<Integer, String> targetmap = target.getMap();
       Map<Integer, String> varmap = varenum.getMap();
       if (targetmap.size() != varmap.size())

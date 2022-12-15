@@ -32,7 +32,7 @@ public class DapDSR {
   static final String DSRXMLTEMPLATE = "/templates/dap4.dsr.xml.template";
   static final String DSRHTMLTEMPLATE = "/templates/dap4.dsr.html.template";
 
-  static final String URL_FORMAT = DapConstants.HTTPSCHEME+"//%s/%s/%s";
+  static final String URL_FORMAT = DapConstants.HTTPSCHEME + "//%s/%s/%s";
 
   //////////////////////////////////////////////////
   // Static Variables

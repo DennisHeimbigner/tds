@@ -101,7 +101,7 @@ public class DapRequest {
     try {
       // Unfortunately getRequestURL does not include the query
       StringBuffer fullurl = request.getRequestURL();
-      if(request.getQueryString() != null) {
+      if (request.getQueryString() != null) {
         fullurl.append("?");
         fullurl.append(Escape.urlDecode(request.getQueryString()));
       }
