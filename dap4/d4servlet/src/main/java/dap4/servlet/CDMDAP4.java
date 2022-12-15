@@ -5,16 +5,12 @@
 
 package dap4.servlet;
 
-import dap4.cdm.CDMTypeFcns;
-import dap4.cdm.CDMUtil;
-import dap4.cdm.NodeMap;
-import dap4.core.data.DataCursor;
+import dap4.dap4lib.cdm.CDMTypeFcns;
+import dap4.dap4lib.cdm.CDMUtil;
+import dap4.dap4lib.cdm.NodeMap;
+import dap4.core.interfaces.DataCursor;
 import dap4.core.dmr.*;
-import dap4.core.util.Convert;
-import dap4.core.util.DapContext;
-import dap4.core.util.DapException;
-import dap4.core.util.DapUtil;
-import dap4.dap4lib.AbstractDSP;
+import dap4.core.util.*;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.ma2.IndexIterator;
@@ -27,13 +23,14 @@ import java.util.*;
 import ucar.nc2.write.CDLWriter;
 
 /**
- * Wrap CDM source (NetcdfDataset) to be a DSP
+ * Wrap CDM source (NetcdfDataset) to Provide a DAP4 API.
+ * More or less the inverse of a DSP.
  * This basically means wrapping various (CDM)Array
  * object to look like DataVariable objects.
- * Currently only used on server side
  */
 
-public class CDMDSP extends AbstractDSP {
+public class CDMDAP4
+{
 
   //////////////////////////////////////////////////
   // Constants
@@ -52,14 +49,17 @@ public class CDMDSP extends AbstractDSP {
   protected static boolean nc4loaded = false;
 
   //////////////////////////////////////////////////
-  // Class methods
+  // Static methods
 
 
   //////////////////////////////////////////////////
   // Instance variables
 
+  protected String location = null;
   protected NetcdfDataset ncdfile = null;
   protected boolean closed = false;
+  protected DapDataset dmr = null;
+
   protected DMRFactory dmrfactory = null;
 
   // Keep various context-dependent maps between
@@ -68,6 +68,9 @@ public class CDMDSP extends AbstractDSP {
 
   // Variable map
   protected NodeMap<Variable, DapVariable> varmap = new NodeMap<>();
+
+  protected Map<DapVariable, CDMCursor> variables = new HashMap<>();
+
 
   // Variable <-> DapStructure (basetype) map; compound types only
   protected NodeMap<Variable, DapStructure> compoundmap = new NodeMap<>();
@@ -81,29 +84,70 @@ public class CDMDSP extends AbstractDSP {
   //////////////////////////////////////////////////
   // Constructor(s)
 
-  public CDMDSP() {}
+  public CDMDAP4() {}
 
-  public CDMDSP(String path) throws DapException {
+  public CDMDAP4(String path) throws DapException {
     super();
     setLocation(path);
   }
 
   //////////////////////////////////////////////////
-  // DSP Interface
+  // Get/Set
 
-  // This is intended to be the last DSP checked
-  @Override
-  public boolean dspMatch(String path, DapContext context) {
-    return true;
+  public DapDataset getDMR() {
+    return this.dmr;
   }
+
+  public CDMDAP4 setDMR(DapDataset dmr) {
+    this.dmr = dmr;
+    return this;
+  }
+
+  public String getLocation() {
+    return this.location;
+  }
+
+  public CDMDAP4 setLocation(String path) {
+    this.location = path;
+    return this;
+  }
+
+  public CDMCursor getVariableData(DapVariable var) throws DapException {
+    Variable cdmvar = this.varmap.get(var);
+    if (cdmvar == null)
+      throw new DapException("Unknown variable: " + var);
+    CDMCursor vardata = (CDMCursor) getVariableData(var);
+    if (vardata == null) {
+      DataCursor.Scheme scheme = CDMCursor.schemeFor(var);
+      try {
+        vardata = new CDMCursor(scheme, this, var, null);
+        vardata.setArray(cdmvar.read());
+      } catch (IOException e) {
+        throw new DapException(e);
+      }
+      addVariableData(var, vardata);
+    }
+    return vardata;
+  }
+
+  public void addVariableData(DapVariable var, CDMCursor cursor) {
+    this.variables.put(var, cursor);
+  }
+
+
+  public NetcdfDataset getNetcdfDataset() {
+    return this.ncdfile;
+  }
+
+  //////////////////////////////////////////////////
+  // Open/Close
 
   /**
    * @param filepath - absolute path to a file
    * @return CDMDSP instance
    * @throws DapException
    */
-  @Override
-  public CDMDSP open(String filepath) throws DapException {
+  public CDMDAP4 open(String filepath) throws DapException {
     try {
       NetcdfFile ncfile = createNetcdfFile(filepath, null);
       NetcdfDataset ncd = new NetcdfDataset(ncfile, ENHANCEMENT);
@@ -120,50 +164,18 @@ public class CDMDSP extends AbstractDSP {
    * @return the cdmdsp
    * @throws DapException
    */
-  public CDMDSP open(NetcdfDataset ncd) throws DapException {
-    assert this.context != null;
-    this.dmrfactory = new DMRFactory();
+  public CDMDAP4 open(NetcdfDataset ncd) throws DapException {
     this.ncdfile = ncd;
     setLocation(this.ncdfile.getLocation());
     buildDMR();
     return this;
   }
 
-  @Override
   public void close() throws IOException {
     if (this.ncdfile != null)
       this.ncdfile.close();
   }
 
-
-  @Override
-  public DataCursor getVariableData(DapVariable var) throws DapException {
-    Variable cdmvar = this.varmap.get(var);
-    if (cdmvar == null)
-      throw new DapException("Unknown variable: " + var);
-    CDMCursor vardata = (CDMCursor) super.getVariableData(var);
-    if (vardata == null) {
-      DataCursor.Scheme scheme = CDMCursor.schemeFor(var);
-      try {
-        vardata = new CDMCursor(scheme, this, var, null);
-        vardata.setArray(cdmvar.read());
-      } catch (IOException e) {
-        throw new DapException(e);
-      }
-      super.addVariableData(var, vardata);
-    }
-    return vardata;
-  }
-
-  //////////////////////////////////////////////////
-  // Abstract DSP Abstract methods
-
-  //////////////////////////////////////////////////
-  // CDMDSP Specific Accessors
-
-  public NetcdfDataset getNetcdfDataset() {
-    return this.ncdfile;
-  }
 
   //////////////////////////////////////////////////
   // Nodemap Management
@@ -257,7 +269,7 @@ public class CDMDSP extends AbstractDSP {
       if (index >= 0)
         name = name.substring(index + 1, name.length());
       // Initialize the root dataset node
-      setDMR((DapDataset) dmrfactory.newDataset(name).annotate(NetcdfDataset.class, this.ncdfile));
+      setDMR((DapDataset) this.dmrfactory.newDataset(name).annotate(NetcdfDataset.class, this.ncdfile));
       // Map the CDM root group to this group
       recordNode(this.ncdfile.getRootGroup(), getDMR());
       getDMR().setBase(DapUtil.canonicalpath(this.ncdfile.getLocation()));
@@ -711,13 +723,14 @@ public class CDMDSP extends AbstractDSP {
    * @param var The NetcdfDataset variable from which to extract coord system
    */
   protected void buildmaps(DapVariable dapvar, Variable var) throws DapException {
+    StructureDS sds = null;
     // See if this cdm variable has one (or more) coordinate system
     List<CoordinateSystem> css = null;
     if (var.getSort() == CDMSort.VARIABLE) {
       VariableDS vds = (VariableDS) var;
       css = vds.getCoordinateSystems();
     } else {
-      StructureDS sds = (StructureDS) var;
+      sds = (StructureDS) var;
       css = sds.getCoordinateSystems();
     }
     if (css != null && css.size() > 0) {
@@ -736,22 +749,22 @@ public class CDMDSP extends AbstractDSP {
               throw new DapException("Illegal map variable:" + v.toString());
             if (!mapvar.isAtomic())
               throw new DapException("Non-atomic map variable:" + v.toString());
-            // Ignore maps where the map variable is inside this scope
-            /*
-             * if(!mapvar.isTopLevel()) {
-             * DapNode parent = mapvar.getContainer();
-             * switch (parent.getSort()) {
-             * case SEQUENCE:
-             * case STRUCTURE:
-             * if(dapvar.getBaseType() == parent) // Do we need to do transitive closure?
-             * throw new DapException("Map var cannot be in same structure as map");
-             * break;
-             * default:
-             * assert false : "Unexpected container type";
-             * }
-             */
-            DapMap map = (DapMap) dmrfactory.newMap(mapvar);
-            dapvar.addMap(map);
+            // Ignore maps where the variable is a structure or sequence
+            // and the map variable is a field within that structure/sequence.
+            boolean ignoremap = false;
+            if(!mapvar.isTopLevel()) {
+              DapNode parenttype = mapvar.getContainer();
+              assert(dapvar.getSort() == DapSort.VARIABLE);
+              DapVariable parent = (DapVariable)dapvar;
+              assert(parent.getSort() == DapSort.STRUCTURE || parent.getSort() == DapSort.SEQUENCE);
+              assert(parent.getBaseType() == parenttype);
+              Variable cdmparent = (Variable)varmap.get(parent);
+              if(cdmparent == CDMUtil.unwrap(sds)) ignoremap = true;
+            }
+            if(!ignoremap) {
+              DapMap map = (DapMap) dmrfactory.newMap(mapvar.getShortName());
+              dapvar.addMap(map);
+            }
           }
         }
       }
@@ -786,12 +799,10 @@ public class CDMDSP extends AbstractDSP {
         continue;
       // Compare the enumeration (note names will differ)
       EnumTypedef target = (EnumTypedef) cdmnode;
-      /*
-       * Ideally, we should test the types of the enums,
-       * but, unfortunately, the var enum is always enum4.
-       * if(target.getBaseType() != varenum.getBaseType())
-       * continue;
-       */
+      // Ideally, we should test the types of the enums,
+      // but, unfortunately, the var enum is always enum4.
+      // if(target.getBaseType() != varenum.getBaseType())
+      //    continue;
       Map<Integer, String> targetmap = target.getMap();
       Map<Integer, String> varmap = varenum.getMap();
       if (targetmap.size() != varmap.size())
@@ -980,7 +991,7 @@ public class CDMDSP extends AbstractDSP {
 
   protected NetcdfFile createNetcdfFile(String location, CancelTask canceltask) throws DapException {
     try {
-      NetcdfFile ncfile = NetcdfFiles.open(location, -1, canceltask, getContext());
+      NetcdfFile ncfile = NetcdfFiles.open(location, -1, canceltask);
       return ncfile;
     } catch (DapException de) {
       if (DEBUG)

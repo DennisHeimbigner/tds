@@ -6,8 +6,8 @@ Copyright 1998-2022 University Corporation for Atmospheric Research/Unidata.
 See LICENSE file for more info.
 -->
 <head>
-<title>Dataset Services Response</title>
-<meta http-equiv=\"Content-Type\" content=\"text/html\"/>
+<meta http-equiv="Content-Type" content="text/html">
+<meta> name="title" content="Dataset Services Response">
 <style>
 table.t1, td.t1, th.t1 {border: 1px solid}
 td.t1, th.t1 {padding:4px}

@@ -5,15 +5,13 @@
 
 package dap4.d4ts;
 
-import dap4.core.data.DSPRegistry;
 import dap4.core.util.DapContext;
 import dap4.core.util.DapException;
 import dap4.core.util.DapUtil;
 import dap4.dap4lib.DapCodes;
 import dap4.dap4lib.DapLog;
-import dap4.dap4lib.RawDSP;
 import dap4.servlet.*;
-import javax.servlet.ServletContext;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -39,23 +37,6 @@ public class D4TSServlet extends DapController {
 
   //////////////////////////////////////////////////
   // Type Decls
-
-  static class D4TSFactory extends DSPFactory {
-
-    public D4TSFactory() {
-      // Register known DSP classes: order is important
-      // in event that two or more dsps can match a given file
-      // Only used in server
-      DapCache.dspregistry.register(CDMDSP.class, DSPRegistry.LAST);
-      DapCache.dspregistry.register(RawDSP.class, DSPRegistry.LAST);
-    }
-  }
-
-  //////////////////////////////////////////////////
-
-  static {
-    DapCache.setFactory(new D4TSFactory());
-  }
 
   //////////////////////////////////////////////////
   // Instance variables
@@ -136,7 +117,7 @@ public class D4TSServlet extends DapController {
       if (testroot == null)
         throw new DapException("Cannot locate dataset  directory");
       this.defaultroots = new ArrayList<>();
-      this.defaultroots.add(new Root(testroot,RESOURCEPATH));
+      this.defaultroots.add(new Root(testroot, RESOURCEPATH));
     }
     return new FrontPage(this.defaultroots, drq);
   }
@@ -174,7 +155,8 @@ public class D4TSServlet extends DapController {
       if (root == null)
         throw new DapException("Cannot find WEB-INF").setCode(DapCodes.SC_NOT_FOUND);
       StringBuilder path = new StringBuilder(DapUtil.canonicalpath(root));
-      if(location.charAt(0) != '/') path.append('/');
+      if (location.charAt(0) != '/')
+        path.append('/');
       path.append(location);
       String result = path.toString();
       File f = new File(result);

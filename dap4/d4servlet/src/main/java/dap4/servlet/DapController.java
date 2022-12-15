@@ -7,8 +7,7 @@
 package dap4.servlet;
 
 import dap4.core.ce.CEConstraint;
-import dap4.core.data.ChecksumMode;
-import dap4.core.data.DSP;
+import dap4.core.util.ChecksumMode;
 import dap4.core.dmr.*;
 import dap4.core.util.*;
 import dap4.dap4lib.*;
@@ -169,10 +168,6 @@ abstract public class DapController extends HttpServlet {
 
 
   //////////////////////////////////////////////////////////
-  // Accessors
-
-
-  //////////////////////////////////////////////////////////
   // Primary Controller Entry Point
 
   public void handleRequest(HttpServletRequest req, HttpServletResponse res) throws IOException {
@@ -180,14 +175,6 @@ abstract public class DapController extends HttpServlet {
     if (!this.initialized)
       initialize();
     DapRequest daprequest = getRequestState(req, res);
-    String url = daprequest.getOriginalURL();
-    if (DEBUG) {
-      StringBuilder info = new StringBuilder("doGet():");
-      info.append(" dataset = ");
-      info.append(" url = ");
-      info.append(url);
-      System.err.println("DAP4 Servlet: processing url: " + daprequest.getOriginalURL());
-    }
     DapContext dapcxt = new DapContext();
     // Add entries to the context
     dapcxt.put(HttpServletRequest.class, req);
@@ -196,7 +183,7 @@ abstract public class DapController extends HttpServlet {
 
     ByteOrder order = daprequest.getOrder();
     ChecksumMode checksummode = daprequest.getChecksumMode();
-    dapcxt.put(Dap4Util.DAP4ENDIANTAG, order);
+    dapcxt.put(DapConstants.DAP4ENDIANTAG, order);
     dapcxt.put(DapConstants.CHECKSUMTAG, checksummode);
     // Transfer all other queries
     Map<String, String> queries = daprequest.getQueries();
@@ -211,6 +198,7 @@ abstract public class DapController extends HttpServlet {
       this.webContentRoot = DapUtil.canonicalpath(this.webContentRoot);
     }
 
+    String url = daprequest.getURL();
     if (url.endsWith(FAVICON)) {
       doFavicon(FAVICON, dapcxt);
       return;
@@ -279,7 +267,7 @@ abstract public class DapController extends HttpServlet {
       OutputStream out = drq.getOutputStream();
       addCommonHeaders(drq);// Add relevant headers
       // Wrap the outputstream with a Chunk writer
-      ByteOrder order = (ByteOrder) cxt.get(Dap4Util.DAP4ENDIANTAG);
+      ByteOrder order = (ByteOrder) cxt.get(DapConstants.DAP4ENDIANTAG);
       ChunkWriter cw = new ChunkWriter(out, RequestMode.DSR, order);
       cw.writeDSR(dsr);
       cw.close();
@@ -298,11 +286,11 @@ abstract public class DapController extends HttpServlet {
     // Convert the url to an absolute path
     String realpath = drq.getResourcePath(drq.getDatasetPath());
 
-    DSP dsp = DapCache.open(realpath, cxt);
-    DapDataset dmr = dsp.getDMR();
+    CDMDAP4 c4 = DapCache.open(realpath, cxt);
+    DapDataset dmr = c4.getDMR();
 
     /* Annotate with our endianness */
-    ByteOrder order = (ByteOrder) cxt.get(Dap4Util.DAP4ENDIANTAG);
+    ByteOrder order = (ByteOrder) cxt.get(DapConstants.DAP4ENDIANTAG);
     setEndianness(dmr, order);
 
     // Process any constraint view
@@ -317,10 +305,7 @@ abstract public class DapController extends HttpServlet {
 
     // Get the DMR as a string
     DMRPrinter dapprinter = new DMRPrinter(dmr, ce, pw, drq.getFormat());
-    if (cxt.get(Dap4Util.DAP4TESTTAG) != null)
-      dapprinter.testprint();
-    else
-      dapprinter.print();
+    dapprinter.print();
     pw.close();
     sw.close();
 
@@ -351,10 +336,10 @@ abstract public class DapController extends HttpServlet {
     // Convert the url to an absolute path
     String realpath = drq.getResourcePath(drq.getDatasetPath());
 
-    DSP dsp = DapCache.open(realpath, cxt);
-    if (dsp == null)
+    CDMDAP4 c4 = DapCache.open(realpath, cxt);
+    if (c4 == null)
       throw new DapException("No such file: " + realpath);
-    DapDataset dmr = dsp.getDMR();
+    DapDataset dmr = c4.getDMR();
     if (DUMPDMR) {
       printDMR(dmr);
       System.err.println(printDMR(dmr));
@@ -362,7 +347,7 @@ abstract public class DapController extends HttpServlet {
     }
 
     /* Annotate with our endianness */
-    ByteOrder order = (ByteOrder) cxt.get(Dap4Util.DAP4ENDIANTAG);
+    ByteOrder order = (ByteOrder) cxt.get(DapConstants.DAP4ENDIANTAG);
     setEndianness(dmr, order);
 
     // Process any constraint
@@ -407,8 +392,8 @@ abstract public class DapController extends HttpServlet {
        */
       case NONE:
       default:
-        DapSerializer writer = new DapSerializer(dsp, ce, cw, order, drq.getChecksumMode());
-        writer.write(dsp.getDMR());
+        DapSerializer writer = new DapSerializer(c4, ce, cw, order, drq.getChecksumMode());
+        writer.write(c4.getDMR());
         cw.flush();
         cw.close();
         break;
@@ -417,35 +402,41 @@ abstract public class DapController extends HttpServlet {
     if (DUMPDATA) {
       byte[] data = cw.getDump();
       if (data != null)
-        DapDump.dumpbytestream(data, cw.getWriteOrder(), "ChunkWriter.write");
+        DapDump.dumpbytesraw(data, cw.getWriteOrder(), "ChunkWriter.write");
     }
   }
 
   //////////////////////////////////////////////////////////
   // Utility Methods
 
-  protected void addCommonHeaders(DapRequest drq) throws IOException {
+  protected void addCommonHeaders(DapRequest drq) throws DapException {
     // Add relevant headers
     ResponseFormat format = drq.getFormat();
     if (format == null)
       format = ResponseFormat.NONE;
-    DapProtocol.ContentType contentheaders = DapProtocol.contenttypes.get(drq.getMode());
-    String header = null;
-    if (contentheaders != null)
-      header = contentheaders.getFormat(format);
-    if (header != null) {
-      header = header + "; charset=utf-8";
-      drq.setResponseHeader("Content-Type", header);
-    } else
-      DapLog.error("Cannot determine response Content-Type");
+    RequestMode mode = drq.getMode();
+    if (mode == null)
+      mode = RequestMode.CAPABILITIES;
+    DapProtocol.ContentType contenttype = DapProtocol.contenttypes.get(DapProtocol.contentKey(mode, format));
+    if (contenttype == null)
+      throw new DapException("Cannot find Content-Type for: " + mode.id() + "," + format.id())
+          .setCode(DapCodes.SC_BAD_REQUEST);
+    // If we go by what OPeNDAP does, then the header rules are as follow:
+    // 1. Set the Content-Description to the application/vnd.opendap.dap4...
+    // 2. If the Response type is not-null, then use the appropriate mime type such as text/xml.
+    // 3. If the Response type is null, then use the same value as Content-Description.
+    // Unfortunately, my HTTP-foo is not good enough to handle rule 3; a web-browser does
+    // not seem to figure out the actual mime-type from the "application/vnd.opendap.dap4..."
+    // content type. So, we use a different rule:
+    // 3a. If the response type is null, then set Content-Type to the proper mime-type.
 
-    // Not sure what this should be yet
-    // setHeader("Content-Description","?");
+    // Rule 1.
+    drq.setResponseHeader("Content-Description", contenttype.contenttype);
 
-    // Again, not sure what value to use
-    // setHeader("Content-Disposition","?");
-
-    // not legal drq.setResponseHeader("Content-Encoding", IS_BIG_ENDIAN ? BIG_ENDIAN : LITTLE_ENDIAN);
+    // Rules 2 and 3.
+    String header = contenttype.mimetype;
+    header = header + "; charset=utf-8";
+    drq.setResponseHeader("Content-Type", header);
   }
 
   /**

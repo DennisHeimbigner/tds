@@ -5,11 +5,9 @@
 
 package dap4.servlet;
 
-import dap4.core.data.ChecksumMode;
-import dap4.core.data.DataCursor;
 import dap4.core.dmr.DapType;
-import dap4.core.dmr.DapVariable;
 import dap4.core.dmr.TypeSort;
+import dap4.core.util.ChecksumMode;
 import dap4.core.util.DapConstants;
 import dap4.core.util.DapException;
 import dap4.core.util.DapUtil;

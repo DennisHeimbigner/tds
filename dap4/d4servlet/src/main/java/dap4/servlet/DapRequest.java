@@ -5,28 +5,15 @@
 
 package dap4.servlet;
 
-import dap4.core.data.ChecksumMode;
-import dap4.core.util.DapConstants;
-import dap4.core.util.DapException;
-import dap4.core.util.DapUtil;
-import dap4.core.util.ResponseFormat;
-import dap4.dap4lib.Dap4Util;
-import dap4.dap4lib.DapLog;
+import dap4.core.util.*;
 import dap4.dap4lib.RequestMode;
-import dap4.dap4lib.XURI;
-import ucar.httpservices.HTTPUtil;
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.ByteOrder;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * User requests get cached here so that downstream code can access
@@ -112,7 +99,13 @@ public class DapRequest {
 
   protected void parseURI() throws IOException {
     try {
-      xuri = new XURI(request.getRequestURL().toString());
+      // Unfortunately getRequestURL does not include the query
+      StringBuffer fullurl = request.getRequestURL();
+      if(request.getQueryString() != null) {
+        fullurl.append("?");
+        fullurl.append(Escape.urlDecode(request.getQueryString()));
+      }
+      xuri = new XURI(fullurl.toString());
     } catch (URISyntaxException e) {
       throw new IOException(e);
     }
@@ -169,7 +162,7 @@ public class DapRequest {
       this.format = ResponseFormat.NONE;
 
     // For testing purposes, get the desired endianness to use with replies
-    String p = queryLookup(Dap4Util.DAP4ENDIANTAG);
+    String p = queryLookup(DapConstants.DAP4ENDIANTAG);
     if (p != null) {
       Integer oz = DapUtil.stringToInteger(p);
       if (oz == null)
@@ -211,6 +204,7 @@ public class DapRequest {
   public String getServletID() throws DapException {
     return controller.getServletID();
   }
+
   /**
    * Convert a URL path for a dataset into an absolute file path
    *
@@ -218,9 +212,9 @@ public class DapRequest {
    * @return path in a string builder so caller can extend.
    * @throws IOException
    */
-    public String getResourcePath(String location) throws DapException {
-      return controller.getResourcePath(this,location);
-    }
+  public String getResourcePath(String location) throws DapException {
+    return controller.getResourcePath(this, location);
+  }
 
   /**
    * Convert a URL path for a web-content related file into an absolute file path
@@ -243,10 +237,6 @@ public class DapRequest {
 
   public String getURL() {
     return this.xuri.toString();
-  }
-
-  public String getOriginalURL() {
-    return this.xuri.getOriginal();
   }
 
   public String getDatasetPath() {

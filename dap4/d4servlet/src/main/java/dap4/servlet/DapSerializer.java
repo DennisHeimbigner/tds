@@ -6,14 +6,10 @@
 package dap4.servlet;
 
 import dap4.core.ce.CEConstraint;
-import dap4.core.data.ChecksumMode;
-import dap4.core.data.DSP;
-import dap4.core.data.DataCursor;
 import dap4.core.dmr.*;
-import dap4.core.util.DapException;
-import dap4.core.util.Index;
-import dap4.core.util.Odometer;
-import dap4.core.util.Slice;
+import dap4.core.interfaces.DataCursor;
+import dap4.core.util.*;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteOrder;
@@ -30,7 +26,7 @@ public class DapSerializer {
 
   protected OutputStream stream = null;
   protected SerialWriter writer = null;
-  protected DSP dsp = null;
+  protected CDMDAP4 cdmwrap = null;
   protected CEConstraint ce = null;
   protected ByteOrder order = null;
   protected ChecksumMode checksummode = null;
@@ -43,14 +39,14 @@ public class DapSerializer {
   /**
    * Primary constructor
    *
-   * @param dsp The DSP to write
+   * @param c4 The DSP to write
    * @param constraint Any applicable constraint
    * @param stream Write to this stream
    * @param order The byte order to use
    */
-  public DapSerializer(DSP dsp, CEConstraint constraint, OutputStream stream, ByteOrder order, ChecksumMode mode)
+  public DapSerializer(CDMDAP4 c4, CEConstraint constraint, OutputStream stream, ByteOrder order, ChecksumMode mode)
       throws IOException {
-    this.dsp = dsp;
+    this.cdmwrap = c4;
     this.order = order;
     this.checksummode = mode;
     this.stream = stream;
@@ -64,7 +60,7 @@ public class DapSerializer {
     for (DapVariable var : dmr.getTopVariables()) {
       if (!this.ce.references(var) || var.getCount() == 0)
         continue;
-      DataCursor vardata = this.dsp.getVariableData(var);
+      CDMCursor vardata = this.cdmwrap.getVariableData(var);
       if (vardata == null)
         throw new dap4.core.util.DapException("DapSerializer: cannot find  Variable data " + var.getFQN());
       writeVariable(vardata, writer);
@@ -79,7 +75,7 @@ public class DapSerializer {
    * @param dst - where to write
    * @throws IOException
    */
-  protected void writeVariable(DataCursor data, SerialWriter dst) throws IOException {
+  protected void writeVariable(CDMCursor data, SerialWriter dst) throws IOException {
     DapVariable template = (DapVariable) data.getTemplate();
     dst.startVariable();
     switch (data.getScheme()) {

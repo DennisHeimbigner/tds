@@ -1,13 +1,9 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-   "http://www.w3.org/TR/html4/strict.dtd">
+          "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-<!--
-Copyright 1998-2022 University Corporation for Atmospheric Research/Unidata.
-See LICENSE file for more info.
--->
 <head>
-<title>Dap4 Test Files</title>
-<meta http-equiv=\"Content-Type\" content=\"text/html\"/>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="title" content="Dap4 Test Files">
 </head>
 <body style="background-color:White;">
 <table>

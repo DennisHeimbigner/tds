@@ -6,11 +6,7 @@
 package dap4.servlet;
 
 import dap4.core.ce.CEConstraint;
-import dap4.core.data.DSP;
-import dap4.core.data.DSPRegistry;
 import dap4.core.util.DapContext;
-import dap4.core.util.DapException;
-import dap4.dap4lib.DapCodes;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,38 +36,22 @@ abstract public class DapCache {
   // Static variables
 
   /**
-   * Define a map of known DSP classes.
+   * Define an lru cache of known CDMDAP4 objects: oldest first.
    */
-  static public DSPRegistry dspregistry = new DSPRegistry();
+  static protected List<CDMDAP4> lru = new ArrayList<>();
 
-  /**
-   * Define an lru cache of known DSP objects: oldest first.
-   */
-  static protected List<DSP> lru = new ArrayList<DSP>();
-
-  // This should be set by any subclass
-  static protected DSPFactory factory = null;
-
-  static public void setFactory(DSPFactory f) {
-    factory = f;
-  }
-
-  static public DSPFactory getFactory() {
-    return factory;
-  }
-
-  static public synchronized DSP open(String path, DapContext cxt) throws IOException {
+  static public synchronized CDMDAP4 open(String path, DapContext cxt) throws IOException {
     assert cxt != null;
     int lrusize = lru.size();
     for (int i = lrusize - 1; i >= 0; i--) {
-      DSP dsp = lru.get(i);
-      String dsppath = dsp.getLocation();
-      if (dsppath.equals(path)) {
+      CDMDAP4 c4 = lru.get(i);
+      String c4path = c4.getLocation();
+      if (c4path.equals(path)) {
         // move to the front of the queue to maintain LRU property
         lru.remove(i);
-        lru.add(dsp);
+        lru.add(c4);
         CEConstraint.release(lru.get(0).getDMR());
-        return dsp;
+        return c4;
       }
     }
     // No match found, create and initialize it.
@@ -82,21 +62,18 @@ abstract public class DapCache {
       CEConstraint.release(lru.get(0).getDMR());
     }
     // Find dsp that can process this path
-    DSP dsp = dspregistry.findMatchingDSP(path, cxt);
-    if (dsp == null)
-      throw new DapException("Resource has no matching DSP: " + path).setCode(DapCodes.SC_FORBIDDEN);
-    dsp.setContext(cxt);
-    dsp.open(path);
-    lru.add(dsp);
-    return dsp;
+    CDMDAP4 c4 = new CDMDAP4();
+    c4.open(path);
+    lru.add(c4);
+    return c4;
   }
 
   static synchronized public void flush() // for testing
       throws Exception {
     while (lru.size() > 0) {
-      DSP dsp = lru.get(0);
-      CEConstraint.release(dsp.getDMR());
-      dsp.close();
+      CDMDAP4 c4 = lru.get(0);
+      CEConstraint.release(c4.getDMR());
+      c4.close();
       lru.remove(0);
     }
   }

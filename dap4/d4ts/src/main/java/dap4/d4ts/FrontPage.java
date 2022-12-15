@@ -60,7 +60,9 @@ public class FrontPage {
       this.dir = dir;
     }
 
-    public String getFullPath() {return this.prefix + "/" + this.dir;};
+    public String getFullPath() {
+      return this.prefix + "/" + this.dir;
+    };
 
     public void setFiles(List<FileSource> files) {
       this.files = files;
@@ -199,7 +201,9 @@ public class FrontPage {
           StringBuilder allrows = new StringBuilder();
           for (File file : src.files) {
             String name = file.getName();
-            String url = String.format(HTML_URL_FORMAT, this.dap4TestServer, root.dir, name);
+            String rootpath = root.dir;
+            if(rootpath.startsWith("/")) rootpath = rootpath.substring(1);
+            String url = String.format(HTML_URL_FORMAT, this.dap4TestServer, rootpath, name);
             StringBuilder row = new StringBuilder(HTML_ROW);
             substitute(row, "dataset", name);
             substitute(row, "url", url);
@@ -309,11 +313,16 @@ public class FrontPage {
   // HTML Text Pieces
   // (Remember that java does not allow Strings to cross lines)
 
-  static final String HTML_URL_FORMAT = "http://%s/d4ts/%s/%s";
+  static final String HTML_URL_FORMAT = DapConstants.HTTPSCHEME+"//%s/d4ts/%s/%s";
 
   static final String HTML_SOURCE = "<h3>${source} Based Test Files</h3>\n<table>\n${rows}\n</table>";
 
-  static final String HTML_ROW =
-      "<tr>\n<td halign='right'><b>${dataset}:</b></td>\n<td halign='center'><a href='${url}.dmr.xml'> DMR.XML </a></div></td>\n<td halign='center'><a href='${url}.dap'> DAP </a></div></td>\n<td halign='center'><a href='${url}.dsr.xml'> DSR.XML </a></div></td>\n<td halign='center'><a href='${url}.dsr.html'> DSR.HTML </a></div></td>\n</tr>\n";
+  static final String HTML_ROW = String.join("\n", "<tr>", "<td halign='right'><b>${dataset}:</b></td>",
+      "<td halign='center'><a href='${url}.dmr'> DMR </a></div></td>",
+      "<td halign='center'><a href='${url}.dap'> DAP </a></div></td>",
+      "<td halign='center'><a href='${url}.dsr'> DSR </a></div></td>",
+      "</tr>",
+      ""
+  );
 
 } // FrontPage

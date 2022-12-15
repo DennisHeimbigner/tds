@@ -10,24 +10,20 @@ import dap4.core.util.DapContext;
 import dap4.core.util.DapException;
 import dap4.core.util.DapUtil;
 import dap4.dap4lib.DapCodes;
-import dap4.dap4lib.DapLog;
 import dap4.servlet.DSPFactory;
 import dap4.servlet.DapCache;
 import dap4.servlet.DapController;
 import dap4.servlet.DapRequest;
-import dap4.servlet.CDMDSP;
+import dap4.servlet.CDMDAP4;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import thredds.core.TdsRequestedDataset;
 import thredds.server.config.TdsContext;
-import ucar.nc2.NetcdfFile;
-import javax.servlet.ServletContext;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URL;
 
 @Controller
 @RequestMapping("/dap4")
@@ -54,7 +50,7 @@ public class Dap4Controller extends DapController {
       // For TDS, we only need to register one DSP type: CDMDSP.
       // This is because we will always serve only NetcdfFile objects.
       // See D4TSServlet for a multiple registration case.
-      DapCache.dspregistry.register(CDMDSP.class, DSPRegistry.LAST);
+      DapCache.dspregistry.register(CDMDAP4.class, DSPRegistry.LAST);
     }
 
   }
@@ -117,7 +113,7 @@ public class Dap4Controller extends DapController {
       id.deleteCharAt(id.length());
     // ensure it starts with '/'
     if (id.charAt(0) != '/')
-      id.insert(0,'/');
+      id.insert(0, '/');
     return id.toString();
   }
 
@@ -138,19 +134,16 @@ public class Dap4Controller extends DapController {
    * @throws IOException
    */
   public String getResourcePath(DapRequest drq, String location) throws DapException {
-    assert(location.charAt(0) == '/');
+    assert (location.charAt(0) == '/');
     // Remove the leading service name, if any
-    if(location.startsWith(SERVICEID))
+    if (location.startsWith(SERVICEID))
       location = location.substring(SERVICEID.length());
     String path = TdsRequestedDataset.getLocationFromRequestPath(location);
     File f = new File(path);
     if (!f.exists() || !f.canRead() || !f.isFile())
-      throw new DapException("Cannot locate resource: "+location).setCode(DapCodes.SC_NOT_FOUND);
+      throw new DapException("Cannot locate resource: " + location).setCode(DapCodes.SC_NOT_FOUND);
     return DapUtil.canonicalpath(path);
   }
-
-
-
 
 
 
