@@ -297,7 +297,8 @@ abstract public class DapController extends HttpServlet {
     CEConstraint ce = null;
     String sce = drq.queryLookup(DapConstants.CONSTRAINTTAG);
     ce = CEConstraint.compile(sce, dmr);
-    setConstraint(dmr, ce);
+    if(sce != null) // only show if client supplied a constraint expression
+      setConstraint(dmr, ce);
 
     // Provide a PrintWriter for capturing the DMR.
     StringWriter sw = new StringWriter();

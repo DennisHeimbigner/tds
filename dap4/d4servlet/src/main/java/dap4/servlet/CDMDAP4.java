@@ -85,10 +85,6 @@ public class CDMDAP4 {
 
   public CDMDAP4() {}
 
-  public CDMDAP4(String path) throws DapException {
-    super();
-    setLocation(path);
-  }
 
   //////////////////////////////////////////////////
   // Get/Set
@@ -157,13 +153,12 @@ public class CDMDAP4 {
   }
 
   /**
-   * Provide an extra API for use in testing
-   *
    * @param ncd netcdf dataset
    * @return the cdmdsp
    * @throws DapException
    */
   public CDMDAP4 open(NetcdfDataset ncd) throws DapException {
+    this.dmrfactory = new DMRFactory();
     this.ncdfile = ncd;
     setLocation(this.ncdfile.getLocation());
     buildDMR();
