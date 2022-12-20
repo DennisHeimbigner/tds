@@ -15,10 +15,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.nio.ByteOrder;
-import java.nio.charset.Charset;
 import java.util.Map;
 
 abstract public class DapController extends HttpServlet {
@@ -286,7 +284,7 @@ abstract public class DapController extends HttpServlet {
     // Convert the url to an absolute path
     String realpath = drq.getResourcePath(drq.getDatasetPath());
 
-    CDMDAP4 c4 = DapCache.open(realpath, cxt);
+    CDMWrap c4 = DapCache.open(realpath, cxt);
     DapDataset dmr = c4.getDMR();
 
     /* Annotate with our endianness */
@@ -337,7 +335,7 @@ abstract public class DapController extends HttpServlet {
     // Convert the url to an absolute path
     String realpath = drq.getResourcePath(drq.getDatasetPath());
 
-    CDMDAP4 c4 = DapCache.open(realpath, cxt);
+    CDMWrap c4 = DapCache.open(realpath, cxt);
     if (c4 == null)
       throw new DapException("No such file: " + realpath);
     DapDataset dmr = c4.getDMR();

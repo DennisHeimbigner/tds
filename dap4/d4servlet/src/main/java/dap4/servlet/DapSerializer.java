@@ -26,7 +26,7 @@ public class DapSerializer {
 
   protected OutputStream stream = null;
   protected SerialWriter writer = null;
-  protected CDMDAP4 cdmwrap = null;
+  protected CDMWrap cdmwrap = null;
   protected CEConstraint ce = null;
   protected ByteOrder order = null;
   protected ChecksumMode checksummode = null;
@@ -44,7 +44,7 @@ public class DapSerializer {
    * @param stream Write to this stream
    * @param order The byte order to use
    */
-  public DapSerializer(CDMDAP4 c4, CEConstraint constraint, OutputStream stream, ByteOrder order, ChecksumMode mode)
+  public DapSerializer(CDMWrap c4, CEConstraint constraint, OutputStream stream, ByteOrder order, ChecksumMode mode)
       throws IOException {
     this.cdmwrap = c4;
     this.order = order;

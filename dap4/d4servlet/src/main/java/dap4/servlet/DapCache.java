@@ -38,13 +38,13 @@ abstract public class DapCache {
   /**
    * Define an lru cache of known CDMDAP4 objects: oldest first.
    */
-  static protected List<CDMDAP4> lru = new ArrayList<>();
+  static protected List<CDMWrap> lru = new ArrayList<>();
 
-  static public synchronized CDMDAP4 open(String path, DapContext cxt) throws IOException {
+  static public synchronized CDMWrap open(String path, DapContext cxt) throws IOException {
     assert cxt != null;
     int lrusize = lru.size();
     for (int i = lrusize - 1; i >= 0; i--) {
-      CDMDAP4 c4 = lru.get(i);
+      CDMWrap c4 = lru.get(i);
       String c4path = c4.getLocation();
       if (c4path.equals(path)) {
         // move to the front of the queue to maintain LRU property
@@ -62,7 +62,7 @@ abstract public class DapCache {
       CEConstraint.release(lru.get(0).getDMR());
     }
     // Find dsp that can process this path
-    CDMDAP4 c4 = new CDMDAP4();
+    CDMWrap c4 = new CDMWrap();
     c4.open(path);
     lru.add(c4);
     return c4;
@@ -71,7 +71,7 @@ abstract public class DapCache {
   static synchronized public void flush() // for testing
       throws Exception {
     while (lru.size() > 0) {
-      CDMDAP4 c4 = lru.get(0);
+      CDMWrap c4 = lru.get(0);
       CEConstraint.release(c4.getDMR());
       c4.close();
       lru.remove(0);

@@ -22,7 +22,7 @@ public class CDMCursor implements DataCursor {
   // Instance variables
 
   protected DataCursor.Scheme scheme;
-  protected CDMDAP4 cdmwrap;
+  protected CDMWrap cdmwrap;
   protected DapNode template;
   protected CDMCursor container;
 
@@ -37,7 +37,7 @@ public class CDMCursor implements DataCursor {
   //////////////////////////////////////////////////
   // Constructor(s)
 
-  public CDMCursor(DataCursor.Scheme scheme, CDMDAP4 c4, DapNode template, CDMCursor container) throws DapException {
+  public CDMCursor(DataCursor.Scheme scheme, CDMWrap c4, DapNode template, CDMCursor container) throws DapException {
     this.scheme = scheme;
     this.cdmwrap = c4;
     this.template = template;
@@ -59,7 +59,7 @@ public class CDMCursor implements DataCursor {
     return this.scheme;
   }
 
-  public CDMDAP4 getCDMDAP4() {
+  public CDMWrap getCDMDAP4() {
     return this.cdmwrap;
   }
 
@@ -86,11 +86,10 @@ public class CDMCursor implements DataCursor {
   public CDMCursor setRecordIndex(long index) {
     this.recordindex = index;
     return this;
-
   }
 
   public CDMCursor setRecordCount(long count) {
-    this.recordindex = count;
+    this.recordcount = count;
     return this;
   }
 
@@ -177,7 +176,7 @@ public class CDMCursor implements DataCursor {
     DapVariable field = (DapVariable) type.getFields().get(findex);
     DapType ftype = field.getBaseType();
     DataCursor.Scheme scheme = schemeFor(field);
-    CDMCursor fc = new CDMCursor(scheme, (CDMDAP4) getCDMDAP4(), field, this);
+    CDMCursor fc = new CDMCursor(scheme, (CDMWrap) getCDMDAP4(), field, this);
     StructureMembers.Member member = this.structdata.getStructureMembers().getMember(findex);
     fc.setMember(member);
     fc.setArray(this.structdata.getArray(fc.member));

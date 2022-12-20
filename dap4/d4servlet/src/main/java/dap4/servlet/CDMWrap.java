@@ -29,7 +29,8 @@ import ucar.nc2.write.CDLWriter;
  * object to look like DataVariable objects.
  */
 
-public class CDMDAP4 {
+public class CDMWrap
+{
 
   //////////////////////////////////////////////////
   // Constants
@@ -83,7 +84,7 @@ public class CDMDAP4 {
   //////////////////////////////////////////////////
   // Constructor(s)
 
-  public CDMDAP4() {}
+  public CDMWrap() {}
 
 
   //////////////////////////////////////////////////
@@ -93,8 +94,15 @@ public class CDMDAP4 {
     return this.dmr;
   }
 
-  public CDMDAP4 setDMR(DapDataset dmr) {
+  public CDMWrap setDMR(DapDataset dmr) {
     this.dmr = dmr;
+    if (getDMR() != null) {
+      // Add some canonical attributes to the <Dataset>
+      getDMR().setDataset(getDMR());
+      getDMR().setDapVersion(DapConstants.X_DAP_VERSION);
+      getDMR().setDMRVersion(DapConstants.X_DMR_VERSION);
+      getDMR().setNS(DapConstants.X_DAP_NS);
+    }
     return this;
   }
 
@@ -102,7 +110,7 @@ public class CDMDAP4 {
     return this.location;
   }
 
-  public CDMDAP4 setLocation(String path) {
+  public CDMWrap setLocation(String path) {
     this.location = path;
     return this;
   }
@@ -111,7 +119,7 @@ public class CDMDAP4 {
     Variable cdmvar = this.varmap.get(var);
     if (cdmvar == null)
       throw new DapException("Unknown variable: " + var);
-    CDMCursor vardata = (CDMCursor) getVariableData(var);
+    CDMCursor vardata = this.variables.get(var);
     if (vardata == null) {
       DataCursor.Scheme scheme = CDMCursor.schemeFor(var);
       try {
@@ -142,7 +150,7 @@ public class CDMDAP4 {
    * @return CDMDSP instance
    * @throws DapException
    */
-  public CDMDAP4 open(String filepath) throws DapException {
+  public CDMWrap open(String filepath) throws DapException {
     try {
       NetcdfFile ncfile = createNetcdfFile(filepath, null);
       NetcdfDataset ncd = new NetcdfDataset(ncfile, ENHANCEMENT);
@@ -157,7 +165,7 @@ public class CDMDAP4 {
    * @return the cdmdsp
    * @throws DapException
    */
-  public CDMDAP4 open(NetcdfDataset ncd) throws DapException {
+  public CDMWrap open(NetcdfDataset ncd) throws DapException {
     this.dmrfactory = new DMRFactory();
     this.ncdfile = ncd;
     setLocation(this.ncdfile.getLocation());
