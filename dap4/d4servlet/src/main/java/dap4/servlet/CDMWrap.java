@@ -29,8 +29,7 @@ import ucar.nc2.write.CDLWriter;
  * object to look like DataVariable objects.
  */
 
-public class CDMWrap
-{
+public class CDMWrap {
 
   //////////////////////////////////////////////////
   // Constants
@@ -47,10 +46,6 @@ public class CDMWrap
   // Class variables
 
   protected static boolean nc4loaded = false;
-
-  //////////////////////////////////////////////////
-  // Static methods
-
 
   //////////////////////////////////////////////////
   // Instance variables

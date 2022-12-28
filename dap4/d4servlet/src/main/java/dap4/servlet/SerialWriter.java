@@ -29,6 +29,7 @@ import java.nio.ByteOrder;
  */
 
 public class SerialWriter {
+
   static public boolean DEBUG = false; // make it mutable
   static public boolean DUMPDATA = false; // make it mutable
   static public boolean DUMPCSUM = false; // make it mutable
@@ -58,7 +59,7 @@ public class SerialWriter {
   protected java.util.zip.Checksum checksum;
   protected ChecksumMode checksummode = null;
   protected boolean serialize = true; // false=>we do not need to actually serialize
-  protected String lastchecksum = null; // checksum from last variable
+  protected long lastchecksum = 0; // checksum from last variable
 
   protected ByteBuffer crcbuffer = null;
   protected ByteBuffer countbuffer = null;
@@ -89,8 +90,8 @@ public class SerialWriter {
     this.serialize = !tf;
   }
 
-  public String getLastChecksum() {
-    return this.lastchecksum.toString();
+  public long getLastChecksum() {
+    return this.lastchecksum;
   }
 
   //////////////////////////////////////////////////
@@ -232,7 +233,7 @@ public class SerialWriter {
       byte[] csum = crcbuffer.array();
       assert csum.length == 4;
       // convert to a string; write as a signed integer
-      this.lastchecksum = String.format("%08x", crc);
+      this.lastchecksum = crc;
       if (DEBUG) {
         System.err.print("checksum = " + this.lastchecksum);
         System.err.println();

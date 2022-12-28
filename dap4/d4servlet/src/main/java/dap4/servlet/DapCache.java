@@ -13,9 +13,8 @@ import java.util.List;
 
 
 /**
- * Provide an LRU cache of DSPs.
- * It is expected (for now) that this is only used on the server side.
- * The cache key is assumed to be the DSP object.
+ * Provide an LRU cache of open CDM sources.
+ * The cache key is assumed to be the CDM object.
  * The cache is synchronized to avoid race conditions.
  * Note that we do not have to release because Java
  * uses garbage collection and entries will be purged
@@ -36,7 +35,7 @@ abstract public class DapCache {
   // Static variables
 
   /**
-   * Define an lru cache of known CDMDAP4 objects: oldest first.
+   * Define an lru cache of known CDMWrap objects: oldest first.
    */
   static protected List<CDMWrap> lru = new ArrayList<>();
 
@@ -61,7 +60,7 @@ abstract public class DapCache {
       lru.remove(0);
       CEConstraint.release(lru.get(0).getDMR());
     }
-    // Find dsp that can process this path
+    // Create the wrapper
     CDMWrap c4 = new CDMWrap();
     c4.open(path);
     lru.add(c4);

@@ -13,7 +13,9 @@ import dap4.core.util.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteOrder;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Given a DSP, serialize
@@ -30,6 +32,8 @@ public class DapSerializer {
   protected CEConstraint ce = null;
   protected ByteOrder order = null;
   protected ChecksumMode checksummode = null;
+
+  protected Map<DapVariable, Long> checksums = null; // record variable checkums
 
   //////////////////////////////////////////////////
   // Constructor(s)
@@ -52,6 +56,16 @@ public class DapSerializer {
     this.stream = stream;
     this.ce = constraint;
   }
+
+  //////////////////////////////////////////////////
+  // Accessors
+
+  public Map<DapVariable, Long> getChecksums() {
+    return this.checksums;
+  }
+
+  //////////////////////////////////////////////////
+  // Writers
 
   public void write(DapDataset dmr) throws IOException {
     writer = new SerialWriter(this.stream, this.order, this.checksummode);
@@ -94,6 +108,12 @@ public class DapSerializer {
         assert false : "Unexpected variable type: " + data.toString();
     }
     dst.endVariable();
+    if (this.checksummode == ChecksumMode.TRUE) {
+      if (this.checksums == null)
+        this.checksums = new HashMap<>();
+      long checksum = dst.getLastChecksum();
+      this.checksums.put(template, (Long) checksum);
+    }
   }
 
   /**

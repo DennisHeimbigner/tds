@@ -18,6 +18,7 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.nio.ByteOrder;
 import java.util.Map;
+import java.util.zip.Checksum;
 
 abstract public class DapController extends HttpServlet {
 
@@ -25,10 +26,6 @@ abstract public class DapController extends HttpServlet {
   // Constants
 
   static public boolean DEBUG = false;
-  static public boolean DUMPDMR = false;
-  static public boolean DUMPDATA = false;
-
-  static public boolean PARSEDEBUG = false;
 
   static protected final String BIG_ENDIAN = "Big-Endian";
   static protected final String LITTLE_ENDIAN = "Little-Endian";
@@ -67,6 +64,19 @@ abstract public class DapController extends HttpServlet {
     return DapController.cache;
   }
 
+  static public String printDMR(DapDataset dmr) {
+    StringWriter sw = new StringWriter();
+    PrintWriter pw = new PrintWriter(sw);
+    DMRPrinter printer = new DMRPrinter(dmr, pw);
+    try {
+      printer.print();
+      pw.close();
+      sw.close();
+    } catch (IOException e) {
+    }
+    return sw.toString();
+  }
+
   //////////////////////////////////////////////////
   // Instance variables
 
@@ -81,9 +91,7 @@ abstract public class DapController extends HttpServlet {
   //////////////////////////////////////////////////
   // Constructor(s)
 
-  public DapController() {
-    ChunkWriter.DUMPDATA = DUMPDATA; // pass it on
-  }
+  public DapController() {}
 
   //////////////////////////////////////////////////////////
   // Abstract methods
@@ -173,23 +181,7 @@ abstract public class DapController extends HttpServlet {
     if (!this.initialized)
       initialize();
     DapRequest daprequest = getRequestState(req, res);
-    DapContext dapcxt = new DapContext();
-    // Add entries to the context
-    dapcxt.put(HttpServletRequest.class, req);
-    dapcxt.put(HttpServletResponse.class, res);
-    dapcxt.put(DapRequest.class, daprequest);
-
-    ByteOrder order = daprequest.getOrder();
-    ChecksumMode checksummode = daprequest.getChecksumMode();
-    dapcxt.put(DapConstants.DAP4ENDIANTAG, order);
-    dapcxt.put(DapConstants.CHECKSUMTAG, checksummode);
-    // Transfer all other queries
-    Map<String, String> queries = daprequest.getQueries();
-    for (Map.Entry<String, String> entry : queries.entrySet()) {
-      if (dapcxt.get(entry.getKey()) == null) {
-        dapcxt.put(entry.getKey(), entry.getValue());
-      }
-    }
+    DapContext dapcxt = buildDapContext(daprequest);
 
     if (this.webContentRoot == null) {
       this.webContentRoot = getWebContentRoot(daprequest);
@@ -286,24 +278,23 @@ abstract public class DapController extends HttpServlet {
 
     CDMWrap c4 = DapCache.open(realpath, cxt);
     DapDataset dmr = c4.getDMR();
-
-    /* Annotate with our endianness */
+    CEConstraint ce = constrainDapContext(cxt, dmr);
+    ChecksumMode csummode = (ChecksumMode) cxt.get(DapConstants.CHECKSUMTAG);
     ByteOrder order = (ByteOrder) cxt.get(DapConstants.DAP4ENDIANTAG);
-    setEndianness(dmr, order);
 
-    // Process any constraint view
-    CEConstraint ce = null;
-    String sce = drq.queryLookup(DapConstants.CONSTRAINTTAG);
-    ce = CEConstraint.compile(sce, dmr);
-    if(sce != null) // only show if client supplied a constraint expression
-      setConstraint(dmr, ce);
+    // If the user calls for checksums, then we need to compute them
+    if (csummode == ChecksumMode.TRUE) {
+      Map<DapVariable, Long> checksummap = computeDMRChecksums(c4, cxt);
+      // Add to context
+      cxt.put("checksummap", checksummap);
+    }
 
     // Provide a PrintWriter for capturing the DMR.
     StringWriter sw = new StringWriter();
     PrintWriter pw = new PrintWriter(sw);
 
     // Get the DMR as a string
-    DMRPrinter dapprinter = new DMRPrinter(dmr, ce, pw, drq.getFormat());
+    DMRPrinter dapprinter = new DMRPrinter(dmr, ce, pw, drq.getFormat(), cxt);
     dapprinter.print();
     pw.close();
     sw.close();
@@ -338,22 +329,11 @@ abstract public class DapController extends HttpServlet {
     CDMWrap c4 = DapCache.open(realpath, cxt);
     if (c4 == null)
       throw new DapException("No such file: " + realpath);
+
     DapDataset dmr = c4.getDMR();
-    if (DUMPDMR) {
-      printDMR(dmr);
-      System.err.println(printDMR(dmr));
-      System.err.flush();
-    }
-
-    /* Annotate with our endianness */
+    CEConstraint ce = constrainDapContext(cxt, dmr);
+    ChecksumMode csummode = (ChecksumMode) cxt.get(DapConstants.CHECKSUMTAG);
     ByteOrder order = (ByteOrder) cxt.get(DapConstants.DAP4ENDIANTAG);
-    setEndianness(dmr, order);
-
-    // Process any constraint
-    CEConstraint ce = null;
-    String sce = drq.queryLookup(DapConstants.CONSTRAINTTAG);
-    ce = CEConstraint.compile(sce, dmr);
-    setConstraint(dmr, ce);
 
     StringWriter sw = new StringWriter();
     PrintWriter pw = new PrintWriter(sw);
@@ -364,14 +344,11 @@ abstract public class DapController extends HttpServlet {
     pw.close();
     sw.close();
 
-    String sdmr = sw.toString();
-    if (DEBUG || DUMPDMR)
-      System.err.println("Sending: Data DMR:\n" + sdmr);
-
     // Wrap the outputstream with a Chunk writer
     OutputStream out = drq.getOutputStream();
     ChunkWriter cw = new ChunkWriter(out, RequestMode.DAP, order);
     cw.setWriteLimit(getBinaryWriteLimit());
+    String sdmr = sw.toString();
     cw.cacheDMR(sdmr);
     cw.flush();
 
@@ -396,12 +373,6 @@ abstract public class DapController extends HttpServlet {
         cw.flush();
         cw.close();
         break;
-    }
-    // Should we dump data?
-    if (DUMPDATA) {
-      byte[] data = cw.getDump();
-      if (data != null)
-        DapDump.dumpbytesraw(data, cw.getWriteOrder(), "ChunkWriter.write");
     }
   }
 
@@ -491,56 +462,54 @@ abstract public class DapController extends HttpServlet {
     drq.getResponse().sendError(httpcode, errormsg);
   }
 
-  /**
-   * Set special attribute: endianness : overwrite exiting value
-   *
-   * @param dmr
-   * @param order
-   * @throws DapException
-   */
-  void setEndianness(DapDataset dmr, ByteOrder order) throws DapException {
-    DapAttribute a = dmr.findAttribute(DapConstants.LITTLEENDIANATTRNAME);
-    if (a == null) {
-      a = new DapAttribute(DapConstants.LITTLEENDIANATTRNAME, DapType.UINT8);
-      dmr.addAttribute(a);
+  public DapContext buildDapContext(DapRequest daprequest) throws DapException {
+    DapContext dapcxt = new DapContext();
+    // Add entries to the context
+    dapcxt.put(DapRequest.class, daprequest);
+    ByteOrder order = daprequest.getOrder();
+    if (order != null) {
+      dapcxt.put(DapConstants.DAP4ENDIANTAG, order);
+      ChecksumMode checksummode = daprequest.getChecksumMode();
+      if (checksummode != null)
+        dapcxt.put(DapConstants.CHECKSUMTAG, ChecksumMode.asTrueFalse(checksummode));
+      // Transfer all other queries
+      Map<String, String> queries = daprequest.getQueries();
+      for (Map.Entry<String, String> entry : queries.entrySet()) {
+        if (dapcxt.get(entry.getKey()) == null)
+          dapcxt.put(entry.getKey(), entry.getValue());
+      }
     }
-    // ByteOrder order = (ByteOrder) cxt.get(Dap4Util.DAP4ENDIANTAG);
-    String oz = (order == ByteOrder.BIG_ENDIAN ? "0" : "1");
-    a.setValues(new String[] {oz});
+    return dapcxt;
   }
 
-  /**
-   * Set special attribute: constraint : overwrite exiting value
-   *
-   * @param dmr dmr to annotate
-   * @param ce the new constraint
-   * @throws DapException
-   */
-  void setConstraint(DapDataset dmr, CEConstraint ce) throws DapException {
-    if (ce == null)
-      return;
-    if (ce.isUniversal())
-      return;
-    DapAttribute a = dmr.findAttribute(DapConstants.CEATTRNAME);
-    if (a == null) {
-      a = new DapAttribute(DapConstants.CEATTRNAME, DapType.STRING);
-      dmr.addAttribute(a);
-    }
-    String sce = ce.toConstraintString();
-    a.setValues(new String[] {sce});
+  public CEConstraint constrainDapContext(DapContext dapcxt, DapDataset dmr) throws DapException {
+    // Add additional entries to the context
+    // Process any constraint view
+    DapRequest drq = (DapRequest) dapcxt.get(DapRequest.class);
+    String sce = drq.queryLookup(DapConstants.CONSTRAINTTAG);
+    CEConstraint ce = CEConstraint.compile(sce, dmr);
+    dapcxt.put(CEConstraint.class, ce);
+    return ce;
   }
 
-  static public String printDMR(DapDataset dmr) {
-    StringWriter sw = new StringWriter();
-    PrintWriter pw = new PrintWriter(sw);
-    DMRPrinter printer = new DMRPrinter(dmr, pw);
+  protected Map<DapVariable, Long> computeDMRChecksums(CDMWrap c4, DapContext cxt) throws DapException {
+    ByteOrder order = (ByteOrder) cxt.get(DapConstants.DAP4ENDIANTAG);
+    ChecksumMode csum = (ChecksumMode) cxt.get(DapConstants.CHECKSUMTAG);
+    CEConstraint ce = (CEConstraint) cxt.get(CEConstraint.class);
+    OutputStream out = new NullOutputStream();
+    DapDataset dmr = ce.getDMR();
     try {
-      printer.print();
-      pw.close();
-      sw.close();
-    } catch (IOException e) {
+      ChunkWriter cw = new ChunkWriter(out, RequestMode.DAP, order);
+      cw.cacheDMR(dmr,cxt);
+      cw.setWriteLimit(1000000000);
+      DapSerializer writer = new DapSerializer(c4, ce, cw, order, csum);
+      writer.write(dmr);
+      cw.flush();
+      cw.close();
+      return writer.getChecksums();
+    } catch (IOException ioe) {
+      throw new DapException(ioe);
     }
-    return sw.toString();
   }
 
 }

@@ -5,15 +5,18 @@
 
 package dap4.servlet;
 
+import dap4.core.ce.CEConstraint;
+import dap4.core.dmr.DMRPrinter;
+import dap4.core.dmr.DapDataset;
 import dap4.core.dmr.ErrorResponse;
 import dap4.core.util.DapConstants;
+import dap4.core.util.DapContext;
 import dap4.core.util.DapException;
 import dap4.core.util.DapUtil;
 import dap4.dap4lib.DapCodes;
 import dap4.dap4lib.RequestMode;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+
+import java.io.*;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -151,6 +154,19 @@ public class ChunkWriter extends OutputStream {
    * @param dmr The DMR string
    * @throws IOException on IO related errors
    */
+
+  public void cacheDMR(DapDataset dmr, DapContext cxt) throws IOException {
+    StringWriter sw = new StringWriter();
+    PrintWriter pw = new PrintWriter(sw);
+    CEConstraint ce = (CEConstraint) cxt.get(CEConstraint.class);
+    DapRequest drq = (DapRequest) cxt.get(DapRequest.class);
+    // Get the DMR as a string
+    DMRPrinter dapprinter = new DMRPrinter(dmr, ce, pw, drq.getFormat());
+    dapprinter.print();
+    pw.close();
+    sw.close();
+    cacheDMR(sw.toString());
+  }
 
   public void cacheDMR(String dmr) throws IOException {
     if (state != State.INITIAL)
