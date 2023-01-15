@@ -8,7 +8,7 @@ package dap4.servlet;
 import dap4.core.dmr.*;
 import dap4.core.interfaces.DataCursor;
 import dap4.core.util.*;
-import dap4.core.util.Index;
+import dap4.dap4lib.D4Index;
 import dap4.dap4lib.cdm.CDMTypeFcns;
 import dap4.dap4lib.cdm.CDMUtil;
 
@@ -132,7 +132,7 @@ public class CDMCursor implements DataCursor {
   }
 
   public Object read(Index index) throws DapException {
-    return read(DapUtil.indexToSlices(index));
+    return read(D4Index.indexToSlices(index));
   }
 
   public CDMCursor readField(int findex) throws DapException {

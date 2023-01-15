@@ -500,7 +500,7 @@ abstract public class DapController extends HttpServlet {
     DapDataset dmr = ce.getDMR();
     try {
       ChunkWriter cw = new ChunkWriter(out, RequestMode.DAP, order);
-      cw.cacheDMR(dmr,cxt);
+      cw.cacheDMR(dmr, cxt);
       cw.setWriteLimit(1000000000);
       DapSerializer writer = new DapSerializer(c4, ce, cw, order, csum);
       writer.write(dmr);
