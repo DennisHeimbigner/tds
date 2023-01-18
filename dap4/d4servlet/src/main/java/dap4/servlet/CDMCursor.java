@@ -6,7 +6,7 @@
 package dap4.servlet;
 
 import dap4.core.dmr.*;
-import dap4.core.interfaces.DataCursor;
+import dap4.core.interfaces.ArrayScheme;
 import dap4.core.util.*;
 import dap4.dap4lib.D4Index;
 import dap4.dap4lib.cdm.CDMTypeFcns;
@@ -16,12 +16,11 @@ import ucar.ma2.*;
 
 import java.util.List;
 
-public class CDMCursor implements DataCursor {
+public class CDMCursor /* implements DataCursor */ {
 
   //////////////////////////////////////////////////
   // Instance variables
-
-  protected DataCursor.Scheme scheme;
+  protected ArrayScheme scheme;
   protected CDMWrap cdmwrap;
   protected DapNode template;
   protected CDMCursor container;
@@ -37,7 +36,7 @@ public class CDMCursor implements DataCursor {
   //////////////////////////////////////////////////
   // Constructor(s)
 
-  public CDMCursor(DataCursor.Scheme scheme, CDMWrap c4, DapNode template, CDMCursor container) throws DapException {
+  public CDMCursor(ArrayScheme scheme, CDMWrap c4, DapNode template, CDMCursor container) throws DapException {
     this.scheme = scheme;
     this.cdmwrap = c4;
     this.template = template;
@@ -55,7 +54,7 @@ public class CDMCursor implements DataCursor {
   //////////////////////////////////////////////////
   // Get/Set
 
-  public DataCursor.Scheme getScheme() {
+  public ArrayScheme getScheme() {
     return this.scheme;
   }
 
@@ -117,7 +116,7 @@ public class CDMCursor implements DataCursor {
         instances[0] = this;
         return instances;
       case STRUCTARRAY:
-        Odometer odom = Odometer.factory(slices);
+        Odometer odom = new Odometer(slices, ((DapVariable) this.getTemplate()).getDimensions());
         instances = new CDMCursor[(int) odom.totalSize()];
         for (int i = 0; odom.hasNext(); i++) {
           instances[i] = readStructure(odom.next());
@@ -143,7 +142,7 @@ public class CDMCursor implements DataCursor {
     if (findex < 0 || findex >= basetype.getFields().size())
       throw new DapException("Field index out of range: " + findex);
     CDMCursor fieldcursor = null;
-    if (this.scheme == DataCursor.Scheme.RECORD) {
+    if (this.scheme == ArrayScheme.RECORD) {
       DapSequence seq = (DapSequence) basetype;
       DapVariable field = seq.getField(0);
       DapType fieldtype = field.getBaseType();
@@ -155,7 +154,7 @@ public class CDMCursor implements DataCursor {
           int ri = (int) this.recordindex;
           Object o = array.getObject(ri);
           Array fielddata = CDMTypeFcns.arrayify(cdmfieldtype, o); // not very efficient; should do conversion
-          fieldcursor = new CDMCursor(DataCursor.Scheme.ATOMIC, getCDMDAP4(), field, this);
+          fieldcursor = new CDMCursor(ArrayScheme.ATOMIC, getCDMDAP4(), field, this);
           fieldcursor.setArray(fielddata);
           break;
         case Sequence:
@@ -175,7 +174,7 @@ public class CDMCursor implements DataCursor {
     DapStructure type = (DapStructure) var.getBaseType();
     DapVariable field = (DapVariable) type.getFields().get(findex);
     DapType ftype = field.getBaseType();
-    DataCursor.Scheme scheme = schemeFor(field);
+    ArrayScheme scheme = schemeFor(field);
     CDMCursor fc = new CDMCursor(scheme, (CDMWrap) getCDMDAP4(), field, this);
     StructureMembers.Member member = this.structdata.getStructureMembers().getMember(findex);
     fc.setMember(member);
@@ -196,14 +195,14 @@ public class CDMCursor implements DataCursor {
   }
 
   public boolean isAtomic() {
-    boolean is = this.scheme == Scheme.ATOMIC;
+    boolean is = this.scheme == ArrayScheme.ATOMIC;
     assert !is || getTemplate().getSort() == DapSort.ATOMICTYPE || (getTemplate().getSort() == DapSort.VARIABLE
         && ((DapVariable) getTemplate()).getBaseType().getTypeSort().isAtomic());
     return is;
   }
 
   public boolean isCompound() {
-    boolean is = (this.scheme == Scheme.SEQUENCE || this.scheme == Scheme.STRUCTURE);
+    boolean is = (this.scheme == ArrayScheme.SEQUENCE || this.scheme == ArrayScheme.STRUCTURE);
     assert !is || getTemplate().getSort() == DapSort.SEQUENCE || getTemplate().getSort() == DapSort.STRUCTURE
         || (getTemplate().getSort() == DapSort.VARIABLE
             && ((DapVariable) getTemplate()).getBaseType().getTypeSort().isCompoundType());
@@ -211,24 +210,24 @@ public class CDMCursor implements DataCursor {
   }
 
   public boolean isCompoundArray() {
-    boolean is = (this.scheme == Scheme.SEQARRAY || this.scheme == Scheme.STRUCTARRAY);
+    boolean is = (this.scheme == ArrayScheme.SEQARRAY || this.scheme == ArrayScheme.STRUCTARRAY);
     assert !is || getTemplate().getSort() == DapSort.SEQUENCE || getTemplate().getSort() == DapSort.STRUCTURE
         || (getTemplate().getSort() == DapSort.VARIABLE
             && ((DapVariable) getTemplate()).getBaseType().getTypeSort().isCompoundType());
     return is;
   }
 
-  protected static DataCursor.Scheme schemeFor(DapVariable field) {
+  protected static ArrayScheme schemeFor(DapVariable field) {
     DapType ftype = field.getBaseType();
-    DataCursor.Scheme scheme = null;
+    ArrayScheme scheme = null;
     boolean isscalar = field.getRank() == 0;
     if (ftype.getTypeSort().isAtomic())
-      scheme = DataCursor.Scheme.ATOMIC;
+      scheme = ArrayScheme.ATOMIC;
     else {
       if (ftype.getTypeSort().isStructType())
-        scheme = DataCursor.Scheme.STRUCTARRAY;
+        scheme = ArrayScheme.STRUCTARRAY;
       else if (ftype.getTypeSort().isSeqType())
-        scheme = DataCursor.Scheme.SEQARRAY;
+        scheme = ArrayScheme.SEQARRAY;
     }
     return scheme;
   }
@@ -239,13 +238,12 @@ public class CDMCursor implements DataCursor {
     if (i < 0 || i >= this.recordcount)
       throw new DapException("Record index out of bounds");
     DapVariable var = (DapVariable) getTemplate();
-    CDMCursor c = new CDMCursor(DataCursor.Scheme.RECORD, getCDMDAP4(), var, this);
+    CDMCursor c = new CDMCursor(ArrayScheme.RECORD, getCDMDAP4(), var, this);
     c.setArray(this.array);
     c.setRecordIndex(i);
     return c;
   }
 
-  @Override
   public int fieldIndex(String name) throws DapException {
     DapStructure ds;
     if (getTemplate().getSort().isCompound())
@@ -283,10 +281,10 @@ public class CDMCursor implements DataCursor {
     if (datatype == null)
       throw new dap4.core.util.DapException("Unknown basetype: " + basetype);
     Object content = array.get1DJavaArray(datatype); // not very efficient; should do conversion
-    Odometer odom = Odometer.factory(slices, dimset);
+    Odometer odom = new Odometer(slices, dimset);
     Object data = CDMTypeFcns.createVector(datatype, odom.totalSize());
     for (int dstoffset = 0; odom.hasNext(); dstoffset++) {
-      Index index = odom.next();
+      D4Index index = odom.next();
       long srcoffset = index.index();
       CDMTypeFcns.vectorcopy(basetype, content, data, srcoffset, dstoffset);
     }
@@ -298,7 +296,7 @@ public class CDMCursor implements DataCursor {
     assert (index != null);
     DapVariable var = (DapVariable) getTemplate();
     DapStructure type = (DapStructure) var.getBaseType();
-    long pos = index.index();
+    int pos = index.currentElement();
     if (pos < 0 || pos > var.getCount())
       throw new IndexOutOfBoundsException("read: " + index);
     ArrayStructure sarray = (ArrayStructure) this.array;
@@ -306,7 +304,7 @@ public class CDMCursor implements DataCursor {
     assert (this.scheme == scheme.STRUCTARRAY);
     ucar.ma2.StructureData sd = sarray.getStructureData((int) pos);
     assert sd != null;
-    instance = new CDMCursor(DataCursor.Scheme.STRUCTURE, getCDMDAP4(), var, null).setStructureData(sd);
+    instance = new CDMCursor(ArrayScheme.STRUCTURE, getCDMDAP4(), var, null).setStructureData(sd);
     instance.setIndex(index);
     return instance;
   }
@@ -321,7 +319,7 @@ public class CDMCursor implements DataCursor {
     if (var.getRank() == 0) {// scalar
       if (!DapUtil.isScalarSlices(slices))
         throw new DapException("Non-scalar slice set applied to scalar variable");
-      instances[0] = new CDMCursor(DataCursor.Scheme.SEQUENCE, getCDMDAP4(), var, this);
+      instances[0] = new CDMCursor(ArrayScheme.SEQUENCE, getCDMDAP4(), var, this);
       instances[0].setArray(seqarray);
       instances[0].setRecordCount(seqarray.getSize());
     } else {
@@ -338,7 +336,7 @@ public class CDMCursor implements DataCursor {
       int slicecount = (int) DapUtil.sliceProduct(slices);
       for (int i = 0; i < slicecount; i++) {
         Array ao = (Array) instancearray.getObject(i);
-        CDMCursor c = new CDMCursor(DataCursor.Scheme.SEQUENCE, getCDMDAP4(), var, this);
+        CDMCursor c = new CDMCursor(ArrayScheme.SEQUENCE, getCDMDAP4(), var, this);
         c.setArray(ao);
         long rcount = ao.getSize();
         c.setRecordCount(rcount);

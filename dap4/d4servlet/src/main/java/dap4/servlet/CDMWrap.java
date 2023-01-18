@@ -5,10 +5,10 @@
 
 package dap4.servlet;
 
+import dap4.core.interfaces.ArrayScheme;
 import dap4.dap4lib.cdm.CDMTypeFcns;
 import dap4.dap4lib.cdm.CDMUtil;
 import dap4.dap4lib.cdm.NodeMap;
-import dap4.core.interfaces.DataCursor;
 import dap4.core.dmr.*;
 import dap4.core.util.*;
 import ucar.ma2.Array;
@@ -116,7 +116,7 @@ public class CDMWrap {
       throw new DapException("Unknown variable: " + var);
     CDMCursor vardata = this.variables.get(var);
     if (vardata == null) {
-      DataCursor.Scheme scheme = CDMCursor.schemeFor(var);
+      ArrayScheme scheme = ArrayScheme.schemeFor(var);
       try {
         vardata = new CDMCursor(scheme, this, var, null);
         vardata.setArray(cdmvar.read());
