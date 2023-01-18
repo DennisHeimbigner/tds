@@ -55,9 +55,9 @@ public class Odometer implements Iterator<Index> {
   public Odometer(List<Slice> set, List<DapDimension> dimset) throws DapException {
     if (set == null)
       throw new DapException("Null slice list");
-    assert(set != null && dimset != null);
-    if(set.size() != dimset.size()) {
-      if(!(dimset.size() == 0 && set.size() == 1))
+    assert (set != null && dimset != null);
+    if (set.size() != dimset.size()) {
+      if (!(dimset.size() == 0 && set.size() == 1))
         throw new DapException("Rank mismatch");
     }
     this.rank = set.size();

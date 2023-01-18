@@ -16,7 +16,7 @@ import ucar.ma2.*;
 
 import java.util.List;
 
-public class CDMCursor /* implements DataCursor */ {
+public class CDMCursor {
 
   //////////////////////////////////////////////////
   // Instance variables
@@ -116,7 +116,7 @@ public class CDMCursor /* implements DataCursor */ {
         instances[0] = this;
         return instances;
       case STRUCTARRAY:
-        Odometer odom = new Odometer(slices, ((DapVariable) this.getTemplate()).getDimensions());
+        Odometer odom = OdometerFactory.factory(slices, ((DapVariable) this.getTemplate()).getDimensions());
         instances = new CDMCursor[(int) odom.totalSize()];
         for (int i = 0; odom.hasNext(); i++) {
           instances[i] = readStructure(odom.next());
@@ -264,7 +264,7 @@ public class CDMCursor /* implements DataCursor */ {
 
   protected Object readAtomic(List<Slice> slices) throws DapException {
     if (slices == null)
-      throw new DapException("DataCursor.read: null set of slices");
+      throw new DapException("CDMCursor.read: null set of slices");
     assert (this.scheme == scheme.ATOMIC);
     DapVariable atomvar = (DapVariable) getTemplate();
     assert slices != null && ((atomvar.getRank() == 0 && slices.size() == 1) || (slices.size() == atomvar.getRank()));
@@ -281,7 +281,7 @@ public class CDMCursor /* implements DataCursor */ {
     if (datatype == null)
       throw new dap4.core.util.DapException("Unknown basetype: " + basetype);
     Object content = array.get1DJavaArray(datatype); // not very efficient; should do conversion
-    Odometer odom = new Odometer(slices, dimset);
+    Odometer odom = OdometerFactory.factory(slices, dimset);
     Object data = CDMTypeFcns.createVector(datatype, odom.totalSize());
     for (int dstoffset = 0; odom.hasNext(); dstoffset++) {
       D4Index index = odom.next();

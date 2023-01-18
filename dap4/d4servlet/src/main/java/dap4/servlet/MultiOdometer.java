@@ -79,7 +79,7 @@ public class MultiOdometer extends Odometer {
       assert this.slicesets.size() == pssize;
       // Create set of odometers comprising this MultiOdometer
       for (int i = 0; i < pssize; i++) {
-        Odometer sslodom = new Odometer(this.slicesets.get(i), dimset);
+        Odometer sslodom = OdometerFactory.factory(this.slicesets.get(i), dimset);
         this.odomset.add(sslodom);
       }
     }

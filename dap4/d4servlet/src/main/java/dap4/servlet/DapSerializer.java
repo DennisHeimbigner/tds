@@ -149,7 +149,7 @@ public class DapSerializer {
     DapStructure ds = (DapStructure) template.getBaseType();
     assert (this.ce.references(template));
     List<Slice> slices = ce.getConstrainedSlices(template);
-    Odometer odom = new Odometer(slices, template.getDimensions());
+    Odometer odom = OdometerFactory.factory(slices, template.getDimensions());
     while (odom.hasNext()) {
       Index index = odom.next();
       CDMCursor[] instance = (CDMCursor[]) data.read(index);
@@ -194,7 +194,7 @@ public class DapSerializer {
     DapSequence ds = (DapSequence) template.getBaseType();
     assert (this.ce.references(template));
     List<Slice> slices = ce.getConstrainedSlices(template);
-    Odometer odom = new Odometer(slices, template.getDimensions());
+    Odometer odom = OdometerFactory.factory(slices, template.getDimensions());
     CDMCursor[] instances = (CDMCursor[]) data.read(slices);
     for (int i = 0; i < instances.length; i++) {
       writeSequence1(instances[i], dst);
