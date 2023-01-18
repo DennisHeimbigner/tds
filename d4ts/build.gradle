@@ -5,9 +5,9 @@ apply from: "$rootDir/gradle/any/gretty.gradle"
 dependencies {
     implementation enforcedPlatform(project(':tds-platform'))
 
-    implementation 'edu.ucar:dap4'
-
+    implementation 'edu.ucar:dap4-lib'
     implementation project(":dap4-servlet")
+
     providedCompile "javax.servlet:javax.servlet-api:${depVersion.javaxServletApi}"
 
     compileOnly 'org.slf4j:slf4j-api'
