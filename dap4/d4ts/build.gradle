@@ -6,7 +6,7 @@ dependencies {
     implementation enforcedPlatform(project(':tds-platform'))
 
     implementation 'edu.ucar:dap4-lib'
-    implementation project(":dap4-servlet")
+    implementation project(":dap4:d4servlet")
 
     providedCompile "javax.servlet:javax.servlet-api:${depVersion.javaxServletApi}"
 
@@ -21,7 +21,7 @@ dependencies {
 
 // This specifies the resources from ":dap4" that we need to include in the d4ts war and inplaceWebapp.
 def d4testsResourcesCopySpec = copySpec {
-   File d4tsResourcesDir = project(":d4ts").file('src/main/webapp/WEB-INF')
+   File d4tsResourcesDir = project(":dap4:d4ts").file('src/main/webapp/WEB-INF')
 
 /*These are already in place
 

@@ -31,7 +31,7 @@ dependencies {
 
   // DAP4 Dependencies (technically forward)
   implementation 'edu.ucar:dap4-lib'
-  implementation project(':dap4-servlet')
+  implementation project(':dap4:d4servlet')
 
   // Server stuff
   providedCompile "javax.servlet:javax.servlet-api:${depVersion.javaxServletApi}"
