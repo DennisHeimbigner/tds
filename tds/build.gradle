@@ -30,7 +30,7 @@ dependencies {
   implementation project(':tds-ugrid')
 
   // DAP4 Dependencies (technically forward)
-  implementation 'edu.ucar:dap4-lib'
+  implementation 'edu.ucar:dap4'
   implementation project(':dap4:d4servlet')
 
   // Server stuff
