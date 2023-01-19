@@ -4,7 +4,7 @@ apply from: "$rootDir/gradle/any/java-published.gradle"
 dependencies {
     implementation enforcedPlatform(project(':tds-platform'))
 
-    runtime 'edu.ucar:dap4-lib'
+    runtime 'edu.ucar:dap4'
     implementation 'edu.ucar:httpservices'
     implementation 'edu.ucar:cdm-core'
 
