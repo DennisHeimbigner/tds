@@ -20,3 +20,18 @@ include 'tds-ui'
 
 // Set name of the opendap servlet artifact
 project(':opendap:server').name = 'opendap-servlet'
+
+plugins {
+    id 'me.champeau.includegit' version '0.1.5'
+}
+
+gitRepositories {
+    include(netcdf-java') {
+	uri = https://github.com/DennisHeimbigner/netcdf-java.git
+        // optional, set what branch to use
+        branch = 'dap4fixes1.tmp'
+    }
+}
+
+
+
