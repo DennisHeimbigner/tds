@@ -1,9 +1,11 @@
-plugins {id 'me.champeau.includegit' version '0.1.5'}
+import me.champeau.gradle.igp.gitRepositories
+plugins {
+  id("me.champeau.includegit")
+}
 gitRepositories {
-  include('netcdf-java')
-  {
-    uri = 'https://github.com/DennisHeimbigner/netcdf-java.git'
-    branch = 'dap4fixes1.tmp'
+  include("netcdf-java") {
+    uri.set("https://github.com/DennisHeimbigner/netcdf-java.git")
+    branch.set("dap4fixes1.tmp")
   }
 }
 // Explicitly name the root project. See: http://stackoverflow.com/questions/20128416
