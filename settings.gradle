@@ -1,6 +1,11 @@
 plugins {id 'me.champeau.includegit' version '0.1.5'}
-gitRepositories {include('netcdf-java') {uri = 'https://github.com/DennisHeimbigner/netcdf-java.git' branch = 'dap4fixes1.tmp'}}
-
+gitRepositories {
+  include('netcdf-java')
+  {
+    uri = 'https://github.com/DennisHeimbigner/netcdf-java.git'
+    branch = 'dap4fixes1.tmp'
+  }
+}
 // Explicitly name the root project. See: http://stackoverflow.com/questions/20128416
 rootProject.name = 'thredds-data-server'
 
