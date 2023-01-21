@@ -4,7 +4,7 @@ plugins {
 gitRepositories {
   include('netcdf-java') {
     uri = 'https://github.com/DennisHeimbigner/netcdf-java.git'
-    tag = 'dap4fixes1.dmh'
+    tag = 'buildpoint'
   }
 }
 // Explicitly name the root project. See: http://stackoverflow.com/questions/20128416
