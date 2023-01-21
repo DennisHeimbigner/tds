@@ -73,7 +73,7 @@ public class TestFormBuilder extends TdsUnitTestCommon {
     setSystemProperties();
     // Turn on Session debugging
     HTTPSession.TESTING = true;
-    HTTPSession.setInterceptors(false);
+    HTTPSession.setGlobalDebugInterceptors(false);
   }
 
   @Test
