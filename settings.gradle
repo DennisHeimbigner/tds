@@ -1,4 +1,3 @@
-import me.champeau.gradle.igp.gitRepositories
 plugins {
   id 'me.champeau.includegit' version '0.1.5'
 }
