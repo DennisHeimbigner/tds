@@ -5,6 +5,7 @@ plugins {
 gitRepositories {
   include('netcdf-java') {
     uri = 'https://github.com/DennisHeimbigner/composite.dmh.git'
+    branch = 'master'
   }
 }
 // Explicitly name the root project. See: http://stackoverflow.com/questions/20128416
