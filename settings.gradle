@@ -1,10 +1,11 @@
+// https://github.com/melix/includegit-gradle-plugin
 plugins {
   id 'me.champeau.includegit' version '0.1.5'
 }
 gitRepositories {
   include('netcdf-java') {
-    uri = 'https://github.com/DennisHeimbigner/netcdf-java.git'
-    tag = 'buildpoint'
+    uri = 'git@github.com:DennisHeimbigner:netcdf-java.git'
+    branch = 'dap4fixes1.dmh'
   }
 }
 // Explicitly name the root project. See: http://stackoverflow.com/questions/20128416
