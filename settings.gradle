@@ -4,12 +4,8 @@ plugins {
 }
 gitRepositories {
   include('netcdf-java') {
-//    uri = 'git@github.com:DennisHeimbigner/netcdf-java.git'
     uri = 'https://github.com/DennisHeimbigner/netcdf-java.git'
     branch = 'dap4fixes1.dmh'
-  }
-  defaultAuthentication {
-    sshWithPublicKey()
   }
 }
 // Explicitly name the root project. See: http://stackoverflow.com/questions/20128416
