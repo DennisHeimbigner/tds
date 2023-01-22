@@ -8,6 +8,9 @@ gitRepositories {
     uri = 'https://github.com/DennisHeimbigner/netcdf-java.git'
     branch = 'dap4fixes1.dmh'
   }
+  defaultAuthentication {
+    sshWithPublicKey()
+  }
 }
 // Explicitly name the root project. See: http://stackoverflow.com/questions/20128416
 rootProject.name = 'thredds-data-server'
