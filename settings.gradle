@@ -4,7 +4,8 @@ plugins {
 }
 gitRepositories {
   include('netcdf-java') {
-    uri = 'git@github.com:DennisHeimbigner/netcdf-java.git'
+//    uri = 'git@github.com:DennisHeimbigner/netcdf-java.git'
+    uri = 'https://github.com/DennisHeimbigner/netcdf-java.git'
     branch = 'dap4fixes1.dmh'
   }
 }
