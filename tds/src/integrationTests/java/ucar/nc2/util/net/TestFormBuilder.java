@@ -26,8 +26,9 @@ import java.util.regex.Pattern;
 /**
  * Test HttpFormBuilder
  */
+
+@RunWith(Parameterized.class)
 public class TestFormBuilder extends TdsUnitTestCommon {
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   //////////////////////////////////////////////////
   // Constants
@@ -59,11 +60,49 @@ public class TestFormBuilder extends TdsUnitTestCommon {
   static final String NULLURL = "http://" + TestDir.remoteTestServer;
 
   //////////////////////////////////////////////////
+  // Static Fields
+
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+  //////////////////////////////////////////////////
+  // Test Case Class
+
+  // Encapulate the arguments for each test
+  static class TestCase {
+    public String name;
+    public HttpEntity content;
+    public TestCase(String name, HttpEntity content) {
+      super(name);
+      this.content = null;
+    }
+    // This defines how the test is reported by JUNIT.
+    public String toString() {
+      return this.name;
+    }
+  }
+
+  //////////////////////////////////////////////////
+  // Test Generator
+
+  @Parameterized.Parameters(name = "{index}: {0}")
+  static public List<TestCase> defineTestCases() {
+    List<TestCaseCommon> testcases = new ArrayList<>();
+    // Simple form test case
+    HTTPFormBuilder builder = buildForm(false);
+    HttpEntity content = builder.build();
+    TestCase tc = new TestCase(name, content);
+    testcases.add(tc);
+
+    return testcases;
+  }
+
+  //////////////////////////////////////////////////
+  // Test Fields
+
+  TestCase tc;
+
+  //////////////////////////////////////////////////
   // Instance Variables
-
-  protected String boundary = null;
-
-  File attach3file = null;
 
   //////////////////////////////////////////////////
   // Constructor(s)
@@ -71,16 +110,19 @@ public class TestFormBuilder extends TdsUnitTestCommon {
   public TestFormBuilder() {
     setTitle("HTTPFormBuilder test(s)");
     setSystemProperties();
-    // Turn on Session debugging
-    HTTPSession.TESTING = true;
     HTTPIntercepts.setGlobalDebugInterceptors(false);
   }
 
+  //////////////////////////////////////////////////
+  // Junit test method(s)
+
+  @Before
+  public void setup() {
+  }
+
   @Test
-  public void testSimple() throws Exception {
+  public void test() throws Exception {
     try {
-      HTTPFormBuilder builder = buildForm(false);
-      HttpEntity content = builder.build();
       HTTPIntercepts.DebugInterceptRequest dbgreq = null;
       HttpEntity entity = null;
       try (HTTPMethod postMethod = HTTPFactory.Post(NULLURL)) {
