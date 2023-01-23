@@ -11,7 +11,6 @@ import dap4.core.util.*;
 import dap4.dap4lib.D4Index;
 import dap4.dap4lib.cdm.CDMTypeFcns;
 import dap4.dap4lib.cdm.CDMUtil;
-
 import ucar.ma2.*;
 
 import java.util.List;
