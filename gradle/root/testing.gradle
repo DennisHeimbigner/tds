@@ -40,7 +40,7 @@ ext {
 
   isRdaDataAvailable = false  // figure out how to set later
 
-  // for now, ignore dap4 tests when checking against netcdf-java pull requests
+  // for now, ignore dap4 when checking against netcdf-java pull requests
   skipDap4 = false
   ciWorkspace = System.getenv('GITHUB_WORKSPACE')
   if (ciWorkspace != null) {

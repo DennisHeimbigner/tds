@@ -61,10 +61,10 @@ import ucar.nc2.dataset.NetcdfDataset;
 public class ThreddsWmsServlet extends WmsServlet {
 
   private static class CachedWmsCatalogue {
-    public final WmsCatalogue wmsCatalogue;
+    public final ThreddsWmsCatalogue wmsCatalogue;
     public final long lastModified;
 
-    public CachedWmsCatalogue(WmsCatalogue wmsCatalogue, long lastModified) {
+    public CachedWmsCatalogue(ThreddsWmsCatalogue wmsCatalogue, long lastModified) {
       this.wmsCatalogue = wmsCatalogue;
       this.lastModified = lastModified;
     }
@@ -121,7 +121,7 @@ public class ThreddsWmsServlet extends WmsServlet {
       }
       catalogue = new ThreddsWmsCatalogue(ncd, tdsDataset.getPath());
       final CachedWmsCatalogue cachedWmsCatalogue =
-          new CachedWmsCatalogue(catalogue, TdsRequestedDataset.getLastModified(tdsDataset.getPath()));
+          new CachedWmsCatalogue((ThreddsWmsCatalogue) catalogue, ncd.getLastModified());
       catalogueCache.put(tdsDataset.getPath(), cachedWmsCatalogue);
     }
 
@@ -132,12 +132,19 @@ public class ThreddsWmsServlet extends WmsServlet {
     super.dispatchWmsRequest(request, params, httpServletRequest, httpServletResponse, catalogue);
   }
 
-  private boolean useCachedCatalogue(String tdsDatasetPath) {
-    final long lastModified = TdsRequestedDataset.getLastModified(tdsDatasetPath);
-    if (catalogueCache.containsKey(tdsDatasetPath)) {
+  // package private for testing
+  static boolean useCachedCatalogue(String tdsDatasetPath) {
+    if (containsCachedCatalogue(tdsDatasetPath)) {
+      // This date last modified will be updated e.g. in the case of an aggregation with a recheckEvery
+      final long netcdfDatasetLastModified = catalogueCache.get(tdsDatasetPath).wmsCatalogue.getLastModified();
       final long cacheLastModified = catalogueCache.get(tdsDatasetPath).lastModified;
-      return cacheLastModified >= lastModified;
+      return cacheLastModified >= netcdfDatasetLastModified;
     }
     return false;
+  }
+
+  // package private for testing
+  static boolean containsCachedCatalogue(String tdsDatasetPath) {
+    return catalogueCache.containsKey(tdsDatasetPath);
   }
 }

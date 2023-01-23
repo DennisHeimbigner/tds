@@ -29,7 +29,7 @@ public class CDMDMR {
   }
 
   public static class CDMMap extends DapMap {
-    public CDMMap(DapVariable target) {
+    public CDMMap(String target) {
       super(target);
     }
   }

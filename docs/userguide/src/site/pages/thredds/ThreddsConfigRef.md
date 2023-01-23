@@ -413,7 +413,7 @@ We recommend that you use this default, by not specifying the `DiskCache.dir` el
 
 ~~~xml
 <AggregationCache>
-  <dir>${tds.content.root.path}/thredds/cache/agg/</dir>
+  <dir>(see the note below)</dir>
   <scour>24 hours</scour>
   <maxAge>90 days</maxAge>
   <cachePathPolicy>nestedDirectory</cachePathPolicy>
@@ -447,9 +447,10 @@ We recommend that you use the default settings, by not specifying this option.
 
 ~~~xml
 <FeatureCollection>
-  <dir>${tds.content.root.path}/thredds/cache/collection/</dir>
+  <dir>(see the note below)</dir>
   <maxEntries>1000</maxEntries>
   <maxBloatFactor>1</maxBloatFactor>
+  <averageValueSize>small</averageValueSize>
 </FeatureCollection>
 ~~~
 
@@ -465,6 +466,12 @@ We recommend that you use the default settings, by not specifying this option.
   If it is possible to have more FMRC files than your `maxEntries`, then this value should be increased.
   It is strongly advised not to configure this value to more than 10, as the cache works progressively slower when the actual size grows far beyond the size configured in your `maxEntries`.
   See [here](https://gerrit.googlesource.com/modules/cache-chroniclemap/+/HEAD/src/main/resources/Documentation/config.md#configuration-parameters) for more details.
+* `averageValueSize`: the average size of the cached value (the grid and variable information), which is used when allocating memory for the cache.
+  The possible values are `small`, `medium`, or `large`.
+  The default value is `small`.
+  In most cases the default value should work fine. However, if your FMRC datasets have hundreds of variables,
+  and you are experiencing issues with the cache filling up even though you have adjusted the `maxEntries` and `maxBloatFactor`,
+  then this may need to be increased to `medium`, or in very rare circumstances `large`.
 
 ### GRIB Index Redirection
 
@@ -472,7 +479,7 @@ We recommend that you use the default settings, by not specifying this option.
 <GribIndex>
   <alwaysUse>false</alwaysUse>
   <neverUse>false</neverUse>
-  <dir>${tds.content.root.path}/thredds/cache/grib/</dir>
+  <dir>(see the note below)</dir>
   <policy>nestedDirectory</policy>
   <scour>0 hours</scour>
   <maxAge>90 days</maxAge>
@@ -482,6 +489,7 @@ We recommend that you use the default settings, by not specifying this option.
 These elements control where GRIB index files are written.
 
 * If `alwaysUse` is true, grib index files will always be written to the _index directory_ specified by `dir` (see [choosing a cache directory](#disk-caching-and-temporary-files)).
+  If not otherwise set, the TDS will use the ${tds.content.root.path}/thredds/cache/grib/ directory
   If `neverUse` is true, the index directory will never be used. 
   If neither is set, the TDS will try to write grib indexes to the same directory as the original file, and if the TDS doesn't have write permission it will then write the files to the index directory.
   Write permission will be determined by what rights the _Tomcat user_ has (the user that starts up Tomcat).
