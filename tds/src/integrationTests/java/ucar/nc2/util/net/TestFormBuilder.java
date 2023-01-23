@@ -78,11 +78,14 @@ public class TestFormBuilder extends TdsUnitTestCommon {
 
   @Test
   public void testSimple() throws Exception {
-    HTTPIntercepts.resetInterceptors();
     try {
       HTTPFormBuilder builder = buildForm(false);
       HttpEntity content = builder.build();
+      HTTPIntercepts.DebugInterceptRequest dbgreq = null;
+      HttpEntity entity = null;
       try (HTTPMethod postMethod = HTTPFactory.Post(NULLURL)) {
+        HTTPSession session = postMethod.getSession();
+        session.resetInterceptors();
         postMethod.setRequestContent(content);
         // Execute, but ignore any problems
         try {
@@ -90,12 +93,12 @@ public class TestFormBuilder extends TdsUnitTestCommon {
         } catch (Exception e) {
           // ignore
         }
+        dbgreq = session.getDebugRequestInterceptor(); // Get the request that was used
+        Assert.assertTrue("Could not get debug request", dbgreq != null);
+        entity = dbgreq.getRequestEntity();
+        Assert.assertTrue("Could not get debug entity", entity != null);
       }
-      // Get the request that was used
-      HTTPUtil.InterceptRequest dbgreq = HTTPSession.debugRequestInterceptor();
-      Assert.assertTrue("Could not get debug request", dbgreq != null);
-      HttpEntity entity = dbgreq.getRequestEntity();
-      Assert.assertTrue("Could not get debug entity", entity != null);
+
       // Extract the form info
       Header ct = entity.getContentType();
       String body = extract(entity, ct, false);
@@ -123,11 +126,13 @@ public class TestFormBuilder extends TdsUnitTestCommon {
     attach3file = HTTPUtil.fillTempFile("attach3.txt", ATTACHTEXT);
     attach3file.deleteOnExit();
 
-    HTTPIntercepts.resetInterceptors();
     try {
       HTTPFormBuilder builder = buildForm(true);
+      HTTPIntercepts.DebugInterceptRequest dbgreq = null;
+      HttpEntity entity = null;
       HttpEntity content = builder.build();
       try (HTTPMethod postMethod = HTTPFactory.Post(NULLURL)) {
+        HTTPSession session = postMethod.getSession();
         postMethod.setRequestContent(content);
         // Execute, but ignore any problems
         try {
@@ -135,12 +140,12 @@ public class TestFormBuilder extends TdsUnitTestCommon {
         } catch (Exception e) {
           // ignore
         }
+        dbgreq = session.getDebugRequestInterceptor(); // Get the request that was used
+        Assert.assertTrue("Could not get debug request", dbgreq != null);
+        entity = dbgreq.getRequestEntity();
+        Assert.assertTrue("Could not get debug entity", entity != null);
       }
-      // Get the request that was used
-      HTTPUtil.InterceptRequest dbgreq = HTTPSession.debugRequestInterceptor();
-      Assert.assertTrue("Could not get debug request", dbgreq != null);
-      HttpEntity entity = dbgreq.getRequestEntity();
-      Assert.assertTrue("Could not get debug entity", entity != null);
+
       // Extract the form info
       Header ct = entity.getContentType();
       String body = extract(entity, ct, true);
