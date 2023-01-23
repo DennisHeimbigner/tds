@@ -1,4 +1,4 @@
-// https://github.com/melix/includegit-gradle-plugin
+ // https://github.com/melix/includegit-gradle-plugin
 plugins {
   id 'me.champeau.includegit' version '0.1.5'
 }
