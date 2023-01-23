@@ -4,8 +4,8 @@ plugins {
 }
 gitRepositories {
   include('netcdf-java') {
-    uri = 'https://github.com/DennisHeimbigner/composite.dmh.git'
-    branch = 'master'
+    uri = 'https://github.com/DennisHeimbigner/netcdf-javagit'
+    branch = 'dap4fixes1.dmh'
   }
 }
 // Explicitly name the root project. See: http://stackoverflow.com/questions/20128416

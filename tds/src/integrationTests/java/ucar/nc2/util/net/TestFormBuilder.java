@@ -73,12 +73,12 @@ public class TestFormBuilder extends TdsUnitTestCommon {
     setSystemProperties();
     // Turn on Session debugging
     HTTPSession.TESTING = true;
-    HTTPSession.setGlobalDebugInterceptors(false);
+    HTTPIntercepts.setGlobalDebugInterceptors(false);
   }
 
   @Test
   public void testSimple() throws Exception {
-    HTTPSession.resetInterceptors();
+    HTTPIntercepts.resetInterceptors();
     try {
       HTTPFormBuilder builder = buildForm(false);
       HttpEntity content = builder.build();
@@ -123,7 +123,7 @@ public class TestFormBuilder extends TdsUnitTestCommon {
     attach3file = HTTPUtil.fillTempFile("attach3.txt", ATTACHTEXT);
     attach3file.deleteOnExit();
 
-    HTTPSession.resetInterceptors();
+    HTTPIntercepts.resetInterceptors();
     try {
       HTTPFormBuilder builder = buildForm(true);
       HttpEntity content = builder.build();
