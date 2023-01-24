@@ -64,7 +64,7 @@ public class CDMWrap {
   // Variable map
   protected NodeMap<Variable, DapVariable> varmap = new NodeMap<>();
 
-  protected Map<DapVariable, CDMCursor> variables = new HashMap<>();
+  protected Map<DapVariable, CDMData> variables = new HashMap<>();
 
 
   // Variable <-> DapStructure (basetype) map; compound types only
@@ -110,15 +110,15 @@ public class CDMWrap {
     return this;
   }
 
-  public CDMCursor getVariableData(DapVariable var) throws DapException {
+  public CDMData getVariableData(DapVariable var) throws DapException {
     Variable cdmvar = this.varmap.get(var);
     if (cdmvar == null)
       throw new DapException("Unknown variable: " + var);
-    CDMCursor vardata = this.variables.get(var);
+    CDMData vardata = this.variables.get(var);
     if (vardata == null) {
       ArrayScheme scheme = ArrayScheme.schemeFor(var);
       try {
-        vardata = new CDMCursor(scheme, this, var, null);
+        vardata = new CDMData(scheme, this, var, null);
         vardata.setArray(cdmvar.read());
       } catch (IOException e) {
         throw new DapException(e);
@@ -128,7 +128,7 @@ public class CDMWrap {
     return vardata;
   }
 
-  public void addVariableData(DapVariable var, CDMCursor cursor) {
+  public void addVariableData(DapVariable var, CDMData cursor) {
     this.variables.put(var, cursor);
   }
 

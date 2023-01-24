@@ -75,7 +75,7 @@ public class DapSerializer {
     for (DapVariable var : dmr.getTopVariables()) {
       if (!this.ce.references(var) || var.getCount() == 0)
         continue;
-      CDMCursor vardata = this.cdmwrap.getVariableData(var);
+      CDMData vardata = this.cdmwrap.getVariableData(var);
       if (vardata == null)
         throw new dap4.core.util.DapException("DapSerializer: cannot find  Variable data " + var.getFQN());
       writeVariable(vardata, writer);
@@ -90,7 +90,7 @@ public class DapSerializer {
    * @param dst - where to write
    * @throws IOException
    */
-  protected void writeVariable(CDMCursor data, SerialWriter dst) throws IOException {
+  protected void writeVariable(CDMData data, SerialWriter dst) throws IOException {
     DapVariable template = (DapVariable) data.getTemplate();
     dst.startVariable();
     switch (data.getScheme()) {
@@ -124,7 +124,7 @@ public class DapSerializer {
    * @param dst
    * @throws dap4.core.util.DapException
    */
-  protected void writeAtomicVariable(CDMCursor data, SerialWriter dst) throws IOException {
+  protected void writeAtomicVariable(CDMData data, SerialWriter dst) throws IOException {
     DapVariable template = (DapVariable) data.getTemplate();
     assert (this.ce.references(template));
     DapType basetype = template.getBaseType();
@@ -144,7 +144,7 @@ public class DapSerializer {
    * @throws dap4.core.util.DapException
    */
 
-  protected void writeStructure(CDMCursor data, SerialWriter dst) throws IOException {
+  protected void writeStructure(CDMData data, SerialWriter dst) throws IOException {
     DapVariable template = (DapVariable) data.getTemplate();
     DapStructure ds = (DapStructure) template.getBaseType();
     assert (this.ce.references(template));
@@ -152,7 +152,7 @@ public class DapSerializer {
     Odometer odom = OdometerFactory.factory(slices, template.getDimensions());
     while (odom.hasNext()) {
       Index index = odom.next();
-      CDMCursor[] instance = (CDMCursor[]) data.read(index);
+      CDMData[] instance = (CDMData[]) data.read(index);
       writeStructure1(instance[0], dst);
     }
   }
@@ -165,7 +165,7 @@ public class DapSerializer {
    * @throws dap4.core.util.DapException
    */
 
-  protected void writeStructure1(CDMCursor instance, SerialWriter dst) throws IOException {
+  protected void writeStructure1(CDMData instance, SerialWriter dst) throws IOException {
     assert instance.getScheme() == ArrayScheme.STRUCTURE;
     DapVariable template = (DapVariable) instance.getTemplate();
     assert (this.ce.references(template));
@@ -176,7 +176,7 @@ public class DapSerializer {
       DapVariable field = fields.get(i);
       if (!this.ce.references(field))
         continue; // not in the view
-      CDMCursor df = (CDMCursor) instance.readField(i);
+      CDMData df = (CDMData) instance.readField(i);
       writeVariable(df, dst);
     }
   }
@@ -189,13 +189,13 @@ public class DapSerializer {
    * @throws dap4.core.util.DapException
    */
 
-  protected void writeSequence(CDMCursor data, SerialWriter dst) throws IOException {
+  protected void writeSequence(CDMData data, SerialWriter dst) throws IOException {
     DapVariable template = (DapVariable) data.getTemplate();
     DapSequence ds = (DapSequence) template.getBaseType();
     assert (this.ce.references(template));
     List<Slice> slices = ce.getConstrainedSlices(template);
     Odometer odom = OdometerFactory.factory(slices, template.getDimensions());
-    CDMCursor[] instances = (CDMCursor[]) data.read(slices);
+    CDMData[] instances = (CDMData[]) data.read(slices);
     for (int i = 0; i < instances.length; i++) {
       writeSequence1(instances[i], dst);
     }
@@ -210,14 +210,14 @@ public class DapSerializer {
    * @throws dap4.core.util.DapException
    */
 
-  protected void writeSequence1(CDMCursor instance, SerialWriter dst) throws IOException {
+  protected void writeSequence1(CDMData instance, SerialWriter dst) throws IOException {
     DapVariable template = (DapVariable) instance.getTemplate();
     DapSequence seq = (DapSequence) template.getBaseType();
     assert (this.ce.references(template));
     long nrecs = instance.getRecordCount();
     dst.writeCount(nrecs);
     for (long i = 0; i < nrecs; i++) {
-      CDMCursor record = instance.readRecord(i);
+      CDMData record = instance.readRecord(i);
       writeRecord(record, dst);
     }
   }
@@ -230,7 +230,7 @@ public class DapSerializer {
    * @throws dap4.core.util.DapException
    */
 
-  protected void writeRecord(CDMCursor record, SerialWriter dst) throws IOException {
+  protected void writeRecord(CDMData record, SerialWriter dst) throws IOException {
     DapVariable template = (DapVariable) record.getTemplate();
     DapSequence seq = (DapSequence) template.getBaseType();
     List<DapVariable> fields = seq.getFields();
@@ -238,7 +238,7 @@ public class DapSerializer {
       DapVariable field = fields.get(i);
       if (!this.ce.references(field))
         continue; // not in the view
-      CDMCursor df = (CDMCursor) record.readField(i);
+      CDMData df = (CDMData) record.readField(i);
       writeVariable(df, dst);
     }
   }
