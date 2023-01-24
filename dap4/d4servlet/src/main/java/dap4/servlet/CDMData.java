@@ -19,8 +19,7 @@ import java.util.List;
  * Wrap a CDM Array and metadata to provide a DAP4 read API
  */
 
-public class CDMData
-{
+public class CDMData {
 
   //////////////////////////////////////////////////
   // Instance variables
