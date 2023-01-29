@@ -117,6 +117,8 @@ public class Dap4Controller extends DapController {
     if (location.startsWith(SERVICEID))
       location = location.substring(SERVICEID.length());
     String path = TdsRequestedDataset.getLocationFromRequestPath(location);
+    if(path == null || path.length() == 0)
+      throw new DapException(String.format("getLocationFromRequestPath: location=|%s| path=null",location,path)).setCode(DapCodes.SC_NOT_FOUND);
     File f = new File(path);
     if (!f.exists() || !f.canRead() || !f.isFile())
       throw new DapException("Cannot locate resource: " + location).setCode(DapCodes.SC_NOT_FOUND);

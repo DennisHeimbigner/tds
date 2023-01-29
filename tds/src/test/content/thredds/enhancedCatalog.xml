@@ -5,7 +5,6 @@
   <service name="latest" serviceType="Resolver" base="" />
   <service name="both" serviceType="Compound" base="">
     <service name="ncdods" serviceType="OPENDAP" base="/thredds/dodsC/" />
-    <service name="ncdap4" serviceType="DAP4" base="/thredds/dap4/" />
     <service name="HTTPServer" serviceType="HTTPServer" base="/thredds/fileServer/" />
   </service>
 
