@@ -73,11 +73,13 @@ public class TestFormBuilder extends TdsUnitTestCommon {
     public String name;
     public boolean ismultipart;
     public HttpEntity content;
+
     public TestCase(String name, HttpEntity content, boolean ismultipart) {
       this.name = name;
       this.ismultipart = ismultipart;
       this.content = content;
     }
+
     public String toString() {
       return this.name;
     }
@@ -151,34 +153,34 @@ public class TestFormBuilder extends TdsUnitTestCommon {
       Header ct = entity.getContentType();
       String body = extract(entity, ct, tc.ismultipart);
       Assert.assertTrue("Malformed debug request", body != null);
-      if(prop_visual)
+      if (prop_visual)
         visual("TestFormBuilder.testsimple.RAW", body);
-      if(!tc.ismultipart) { // simple form
+      if (!tc.ismultipart) { // simple form
         body = genericize(body, OSTEXT, null, null);
-        if(prop_visual)
+        if (prop_visual)
           visual("TestFormBuilder.testsimple.LOCALIZED", body);
         String diffs = TdsUnitTestCommon.compare("TestFormBuilder.testSimple", simplebaseline, body);
-        if(diffs != null) {
+        if (diffs != null) {
           System.err.println("TestFormBuilder.testsimple.diffs:\n" + diffs);
           Assert.assertTrue("TestFormBuilder.testSimple: ***FAIL", false);
         }
-      } else if(tc.ismultipart) { // multi-part form
-          // Get the contenttype boundary
-          String boundary = getboundary(ct);
-          Assert.assertTrue("Missing boundary info", boundary != null);
-          String attach3 = getattach(body, "attach3");
-          Assert.assertTrue("Missing attach3 info", attach3 != null);
-          body = genericize(body, OSTEXT, boundary, attach3);
-          if(prop_visual)
-            visual("TestFormBuilder.testmultipart.LOCALIZED", body);
-          String diffs = TdsUnitTestCommon.compare("TestFormBuilder.testMultiPart", multipartbaseline, body);
-          if(diffs != null) {
-            System.err.println("TestFormBuilder.testmultipart.diffs:\n" + diffs);
-            Assert.assertTrue("TestFormBuilder.testmultipart: ***FAIL", false);
-          }
-        } else {
-          assert false;
+      } else if (tc.ismultipart) { // multi-part form
+        // Get the contenttype boundary
+        String boundary = getboundary(ct);
+        Assert.assertTrue("Missing boundary info", boundary != null);
+        String attach3 = getattach(body, "attach3");
+        Assert.assertTrue("Missing attach3 info", attach3 != null);
+        body = genericize(body, OSTEXT, boundary, attach3);
+        if (prop_visual)
+          visual("TestFormBuilder.testmultipart.LOCALIZED", body);
+        String diffs = TdsUnitTestCommon.compare("TestFormBuilder.testMultiPart", multipartbaseline, body);
+        if (diffs != null) {
+          System.err.println("TestFormBuilder.testmultipart.diffs:\n" + diffs);
+          Assert.assertTrue("TestFormBuilder.testmultipart: ***FAIL", false);
         }
+      } else {
+        assert false;
+      }
     } catch (Exception e) {
       e.printStackTrace();
       Assert.assertTrue("***FAIL: " + e, false);
