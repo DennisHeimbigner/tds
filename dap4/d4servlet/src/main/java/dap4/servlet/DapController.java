@@ -306,10 +306,10 @@ abstract public class DapController extends HttpServlet {
     addCommonHeaders(drq);// Add relevant headers
 
     OutputStream out = drq.getOutputStream();
-      // Wrap the outputstream with a Chunk writer
-      ChunkWriter cw = new ChunkWriter(out, RequestMode.DMR, order);
-      cw.cacheDMR(sdmr);
-      cw.close();
+    // Wrap the outputstream with a Chunk writer
+    ChunkWriter cw = new ChunkWriter(out, RequestMode.DMR, order);
+    cw.cacheDMR(sdmr);
+    cw.close();
 
   }
 
@@ -460,7 +460,7 @@ abstract public class DapController extends HttpServlet {
     }
     err.setContext(drq.getURL());
     String errormsg = err.buildXML();
-    if(false) {
+    if (false) {
       drq.getResponse().sendError(httpcode, errormsg);
     } else {
       OutputStream out = drq.getOutputStream();
