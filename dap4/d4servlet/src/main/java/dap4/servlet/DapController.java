@@ -45,24 +45,8 @@ abstract public class DapController extends HttpServlet {
   //////////////////////////////////////////////////
   // static variables
 
-  // We need a singleton instance of a DapCache in order
-  // To avoid re-opening the same NetcdfFile instance.
-  // Assume:
-  // 1. This is subclassed only once and that class will fill in
-  // this DapCache instance.
-
-  static protected DapCache cache = null;
-
   //////////////////////////////////////////////////
   // Static accessors
-
-  static protected void setCache(DapCache cache) {
-    DapController.cache = cache;
-  }
-
-  static protected DapCache getCache() {
-    return DapController.cache;
-  }
 
   static public String printDMR(DapDataset dmr) {
     StringWriter sw = new StringWriter();
@@ -276,7 +260,7 @@ abstract public class DapController extends HttpServlet {
     // Convert the url to an absolute path
     String realpath = drq.getResourcePath(drq.getDatasetPath());
 
-    CDMWrap c4 = DapCache.open(realpath, cxt);
+    CDMWrap c4 = new CDMWrap().open(realpath); // Create the wrapper
     DapDataset dmr = c4.getDMR();
     CEConstraint ce = constrainDapContext(cxt, dmr);
     ChecksumMode csummode = (ChecksumMode) cxt.get(DapConstants.CHECKSUMTAG);
@@ -311,6 +295,8 @@ abstract public class DapController extends HttpServlet {
     cw.cacheDMR(sdmr);
     cw.close();
 
+    c4.close();
+
   }
 
   /**
@@ -327,7 +313,7 @@ abstract public class DapController extends HttpServlet {
     // Convert the url to an absolute path
     String realpath = drq.getResourcePath(drq.getDatasetPath());
 
-    CDMWrap c4 = DapCache.open(realpath, cxt);
+    CDMWrap c4 = new CDMWrap().open(realpath);
     if (c4 == null)
       throw new DapException("No such file: " + realpath);
 
@@ -375,6 +361,7 @@ abstract public class DapController extends HttpServlet {
         cw.close();
         break;
     }
+    c4.close();
   }
 
   //////////////////////////////////////////////////////////
