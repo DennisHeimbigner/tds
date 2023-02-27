@@ -26,7 +26,7 @@ jobs:
           java-vendor: ${{ matrix.java-vendor }}
           java-version: ${{ matrix.java-version }}
           build-tool: 'gradlew'
-          test-command: '--debug -Dtds.content.root.path=$CONTENT_DIR -Dtds.test.gretty.container=${{ matrix.servletcontainer }} --info --stacktrace testAll'
+          test-command: '--debug -Dtds.content.root.path=$CONTENT_DIR -Dtds.test.gretty.container=${{ matrix.servletcontainer }} --info --stacktrace testAll -Drefresh.git.repositories=1L'
         env:
           CONTENT_DIR: ${{ github.workspace }}/tds/src/test/content
       - uses: actions/upload-artifact@v2
