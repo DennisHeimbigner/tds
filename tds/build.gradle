@@ -103,6 +103,7 @@ dependencies {
   testCompile 'junit:junit'
   testCompile project(':tds-test-utils');
   testCompile 'edu.ucar:cdm-test-utils'  // Contains stuff like the JUnit @Category classes.
+  testCompile 'edu.ucar:httpservices'
 
   // Logging
   compile 'org.slf4j:slf4j-api'
