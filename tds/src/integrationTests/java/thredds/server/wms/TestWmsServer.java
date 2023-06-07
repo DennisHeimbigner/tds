@@ -32,13 +32,14 @@ import ucar.unidata.util.test.category.NeedsCdmUnitTest;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@Category(NeedsCdmUnitTest.class)
 public class TestWmsServer {
   private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  private static final double TOLERANCE = 1.0e-8;
   private final Namespace NS_WMS = Namespace.getNamespace("wms", "http://www.opengis.net/wms");
 
   @Test
+  @Category(NeedsCdmUnitTest.class)
   public void testCapabilities() throws IOException, JDOMException {
     String endpoint = TestOnLocalServer.withHttpPath(
         "/wms/scanCdmUnitTests/conventions/coards/sst.mnmean.nc?service=WMS&version=1.3.0&request=GetCapabilities");
@@ -60,6 +61,7 @@ public class TestWmsServer {
   }
 
   @Test
+  @Category(NeedsCdmUnitTest.class)
   public void testGetPng() {
     String endpoint =
         TestOnLocalServer.withHttpPath("/wms/scanCdmUnitTests/conventions/cf/ipcc/tas_A1.nc?service=WMS&version=1.3.0"
@@ -74,6 +76,7 @@ public class TestWmsServer {
   }
 
   @Test
+  @Category(NeedsCdmUnitTest.class)
   public void testGetLegendGraphic() {
     String endpoint =
         TestOnLocalServer.withHttpPath("/wms/scanCdmUnitTests/conventions/cf/ipcc/tas_A1.nc?service=WMS&version=1.3.0"
@@ -88,6 +91,7 @@ public class TestWmsServer {
   }
 
   @Test
+  @Category(NeedsCdmUnitTest.class)
   public void testGetLegendGraphicWithSLD() {
     System.setProperty("httpservices.urlencode", "false");
     try {
@@ -107,6 +111,7 @@ public class TestWmsServer {
   }
 
   @Test
+  @Category(NeedsCdmUnitTest.class)
   public void shouldGetMapForAggregationVariableThatDoesNotDependOnAggregationDimension() {
     final String endpoint = TestOnLocalServer.withHttpPath("/wms/aggJoinExisting?FORMAT=image/png&TRANSPARENT=TRUE"
         + "&STYLES=default-scalar/psu-viridis&LAYERS=Visibility&TIME=2006-09-26T00:00:00.000Z&COLORSCALERANGE=-50,50"
@@ -118,10 +123,30 @@ public class TestWmsServer {
   }
 
   @Test
+  @Category(NeedsCdmUnitTest.class)
   public void shouldGetCapabilitiesForDatasetScanWithNcml() {
     final String endpoint = TestOnLocalServer
         .withHttpPath("/wms/ModifyDatasetScan/revOceanDJF2.nc?service=WMS&version=1.3.0&request=GetCapabilities");
     final byte[] result = TestOnLocalServer.getContent(endpoint, HttpServletResponse.SC_OK, ContentType.xmlwms);
     assertThat(result).isNotEmpty();
+  }
+
+  @Test
+  public void shouldApplyOffsetToData() throws IOException, JDOMException {
+    final String[] variableNames = {"variableWithOffset", "variableWithoutOffset"};
+    for (String variableName : variableNames) {
+      final String endpoint = TestOnLocalServer.withHttpPath("/wms/scanLocal/testOffset.nc?" + "LAYERS=" + variableName
+          + "&service=WMS&version=1.3.0&CRS=CRS:84&BBOX=0,0,10,10&WIDTH=100&HEIGHT=100"
+          + "&REQUEST=GetFeatureInfo&QUERY_LAYERS=" + variableName + "&i=0&j=0");
+      final byte[] result = TestOnLocalServer.getContent(endpoint, HttpServletResponse.SC_OK, ContentType.xmlwms);
+
+      final Reader reader = new StringReader(new String(result, StandardCharsets.UTF_8));
+      final Document doc = new SAXBuilder().build(reader);
+      final XPathExpression<Element> xpath = XPathFactory.instance().compile("//FeatureInfo/value", Filters.element());
+      final Element element = xpath.evaluateFirst(doc);
+
+      assertThat(element.getContentSize()).isEqualTo(1);
+      assertThat(Double.valueOf(element.getText())).isWithin(TOLERANCE).of(7.5);
+    }
   }
 }

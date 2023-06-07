@@ -201,8 +201,8 @@ The following shows all the configuration options available in the WCS section o
 <WCS>
   <allow>true</allow>
   <dir>(see the note below)</dir>
-  <scour>15 min</scour>
-  <maxAge>30 min</maxAge>
+  <scour>10 min</scour>
+  <maxAge>5 min</maxAge>
 </WCS>
 ~~~
 
@@ -248,10 +248,17 @@ Here is the description of the various options:
 * `allowRemote`: a value of `true` enables the WMS service for datasets available from a remote server.
 * `paletteLocationDir`: optionally specify the location of the directory containing your own palette files, by specifying the directory
 where they are contained.
-  The directory is relative to `${tds.content.root.path}/thredds/`.
-  The default directory for custom palette files is `${tds.content.root.path}/thredds/wmsPalettes`.
-  If you don't specify it, or specify it incorrectly, the default palettes will be used, which are described
+  * If the directory location starts with a `/`, the path is absolute, otherwise it is relative to `${tds.content.root.path}/thredds/`.
+  * The default directory for custom palette files is `${tds.content.root.path}/thredds/wmsPalettes`. 
+  * If you don't specify a custom palette directory, or specify it incorrectly, the default directory will be used.
+  * Custom palette files will be loaded in addition to the default palettes, which are described
   [here](https://reading-escience-centre.gitbooks.io/ncwms-user-guide/content/04-usage.html#getmap).
+  * Note that the palette file format has changed between TDS version 4.x and TDS version 5.x. Please refer to the 
+  [EDAL-Java palette file directory](https://github.com/Reading-eScience-Centre/edal-java/tree/master/graphics/src/main/resources/palettes) 
+  for examples of palette files that are compatible with the TDS version 5.x WMS service.
+  * More information on the format of palette files can also be found in the 
+  [ncWMS documentation](https://reading-escience-centre.gitbooks.io/ncwms-user-guide/content/06-development.html#:~:text=To%20add%20new,in%20hexadecimal%20notation.).
+  * If you created palette files for TDS 4.x and would like to use them in TDS 5.x, an open source tool named [Magic Palette Converter](https://github.com/billyz313/magic-palette-converter){:target="_blank"} for THREDDS is available to assist in the conversion (special thanks to [Billy Ashmall](https://github.com/Unidata/tds/discussions/346){:target="_blank"}!)
 * `maxImageWidth`: the maximum image width in pixels that this WMS service will return.
 * `maxImageHeight`: the maximum image height in pixels that this WMS service will return.
 
@@ -272,9 +279,9 @@ The following shows all the configuration options available in the `NetcdfSubset
 <NetcdfSubsetService>
   <allow>true</allow>
   <dir>(see the note below)</dir>
-  <scour>15 min</scour>
-  <maxAge>30 min</maxAge>
-  <maxFileDownloadSize>300 MB</maxFileDownloadSize>
+  <scour>10 min</scour>
+  <maxAge>5 min</maxAge>
+  <maxFileDownloadSize>-1</maxFileDownloadSize>
 </NetcdfSubsetService>
 ~~~
 

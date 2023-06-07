@@ -39,7 +39,7 @@ import ucar.nc2.ft2.coverage.writer.CoverageDatasetCapabilities;
 import ucar.nc2.util.IO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -57,7 +57,7 @@ import ucar.nc2.write.NetcdfFormatWriter;
 @RequestMapping("/ncss/grid")
 public class NcssGridController extends AbstractNcssController {
   // Compression rate used to estimate the filesize of netcdf4 compressed files
-  static private final short ESTIMATED_COMPRESION_RATE = 4;
+  private static final short ESTIMATED_COMPRESSION_RATE = 4;
   // pattern for valid WKT lat lon point
   // Two decimal digits separated by whitespace, potentially starting and/or ending with
   // a comma
@@ -115,7 +115,7 @@ public class NcssGridController extends AbstractNcssController {
           + "Grid requests with vertCoord must have variables with same vertical levels.");
     }
 
-    String responseFile = getResponseFileName(datasetPath, version);
+    String responseFile = getResponseFileName();
     File netcdfResult = makeCFNetcdfFile(gcd, responseFile, params, version);
 
     // filename download attachment
@@ -140,6 +140,8 @@ public class NcssGridController extends AbstractNcssController {
     res.flushBuffer();
     res.getOutputStream().close();
     res.setStatus(HttpServletResponse.SC_OK);
+
+    netcdfResult.delete();
   }
 
   private static NetcdfFileFormat getNetcdfFileFormat(SupportedFormat supportedFormat) {
@@ -162,8 +164,9 @@ public class NcssGridController extends AbstractNcssController {
 
     // Test maxFileDownloadSize
     long maxFileDownloadSize = ThreddsConfig.getBytes("NetcdfSubsetService.maxFileDownloadSize", -1L);
-    if (version == NetcdfFileFormat.NETCDF4)
-      maxFileDownloadSize *= ESTIMATED_COMPRESION_RATE;
+    if (version.isNetcdf4Format()) {
+      maxFileDownloadSize *= ESTIMATED_COMPRESSION_RATE;
+    }
 
     // write the file
     // default chunking - let user control at some point
@@ -178,7 +181,7 @@ public class NcssGridController extends AbstractNcssController {
     return new File(responseFilename);
   }
 
-  private String getResponseFileName(String requestPathInfo, NetcdfFileFormat version) {
+  private String getResponseFileName() {
     File ncFile = ncssDiskCache.getDiskCache().createUniqueFile("ncss-grid", ".nc");
 
     if (ncFile == null)

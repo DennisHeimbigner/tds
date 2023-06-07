@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.Immutable;
 import java.lang.invoke.MethodHandles;
+import thredds.inventory.MFile;
+import thredds.inventory.MFiles;
 
 /**
  * A DataRoot matches URLs to the objects that can serve them.
@@ -166,7 +168,8 @@ public class DataRoot {
 
   }
 
-  private String getFileLocationFromRequestPath(String reqPath, String rootPath, String rootLocation,
+  // Package private for testing
+  static String getFileLocationFromRequestPath(String reqPath, String rootPath, String rootLocation,
       boolean isFeatureCollection) {
     if (reqPath == null)
       return null;
@@ -179,22 +182,24 @@ public class DataRoot {
     if (!reqPath.startsWith(rootPath))
       return null;
 
+    final String relativeLocation = getRelativeLocation(reqPath, rootPath, isFeatureCollection);
+
+    final MFile rootMFile = MFiles.create(rootLocation);
+    final MFile mFile = rootMFile.getChild(relativeLocation);
+    return mFile == null ? null : mFile.getPath();
+  }
+
+  private static String getRelativeLocation(String reqPath, String rootPath, boolean isFeatureCollection) {
     // remove the matching part, the rest is the "data directory"
     String locationRelative = reqPath.substring(rootPath.length());
-    if (isFeatureCollection && locationRelative.startsWith("/files"))
-      locationRelative = locationRelative.substring(7); // LOOK maybe only if its an fc ?? its a kludge here
-
-    if (locationRelative.startsWith("/"))
-      locationRelative = locationRelative.substring(1);
-
-    if (!rootLocation.endsWith("/")) {
-      if (rootLocation.startsWith("cdms3") || rootLocation.startsWith("s3")) {
-        rootLocation = rootLocation + "?";
-      } else {
-        rootLocation = rootLocation + "/";
-      }
+    if (isFeatureCollection && locationRelative.startsWith("/files")) {
+      locationRelative = locationRelative.substring(7);
     }
-    // put it together
-    return (locationRelative.length() > 1) ? rootLocation + locationRelative : rootLocation;
+
+    if (locationRelative.startsWith("/")) {
+      locationRelative = locationRelative.substring(1);
+    }
+
+    return locationRelative;
   }
 }
