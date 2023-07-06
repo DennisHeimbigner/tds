@@ -325,8 +325,17 @@ abstract public class DapController extends HttpServlet {
     StringWriter sw = new StringWriter();
     PrintWriter pw = new PrintWriter(sw);
 
+    // If the user calls for checksums, then we need to compute them
+    // This, unfortunately, will require computation twice: one to insert
+    // into the DMR and one to insert into the serialized DAP stream. Sigh!
+    if (csummode == ChecksumMode.TRUE) {
+      Map<DapVariable, Long> checksummap = computeDMRChecksums(c4, cxt);
+      // Add to context
+      cxt.put("checksummap", checksummap);
+    }
+
     // Get the DMR as a string
-    DMRPrinter dapprinter = new DMRPrinter(dmr, ce, pw, drq.getFormat());
+    DMRPrinter dapprinter = new DMRPrinter(dmr, ce, pw, drq.getFormat(), cxt);
     dapprinter.print();
     pw.close();
     sw.close();

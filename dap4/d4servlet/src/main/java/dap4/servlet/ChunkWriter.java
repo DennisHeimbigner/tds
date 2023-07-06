@@ -161,7 +161,7 @@ public class ChunkWriter extends OutputStream {
     CEConstraint ce = (CEConstraint) cxt.get(CEConstraint.class);
     DapRequest drq = (DapRequest) cxt.get(DapRequest.class);
     // Get the DMR as a string
-    DMRPrinter dapprinter = new DMRPrinter(dmr, ce, pw, drq.getFormat());
+    DMRPrinter dapprinter = new DMRPrinter(dmr, ce, pw, drq.getFormat(), cxt);
     dapprinter.print();
     pw.close();
     sw.close();

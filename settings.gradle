@@ -1,11 +1,12 @@
-// https://github.com/melix/includegit-gradle-plugin
+// source: https://github.com/melix/includegit-gradle-plugin
 plugins {
   id 'me.champeau.includegit' version '0.1.5'
 }
 gitRepositories {
-  include('netcdf-java') {
+  include('netcdf-java')
+  {
     uri = 'https://github.com/DennisHeimbigner/netcdf-java.git'
-    branch = 'master'
+    branch = 'checksumfix.tmp'
   }
 }
 // Explicitly name the root project. See: http://stackoverflow.com/questions/20128416
