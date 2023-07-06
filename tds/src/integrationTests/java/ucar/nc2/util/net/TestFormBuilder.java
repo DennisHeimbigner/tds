@@ -148,7 +148,6 @@ public class TestFormBuilder extends TdsUnitTestCommon {
         entity = dbgreq.getRequestEntity();
         Assert.assertTrue("Could not get debug entity", entity != null);
       }
-
       // Extract the form info
       Header ct = entity.getContentType();
       String body = extract(entity, ct, tc.ismultipart);
