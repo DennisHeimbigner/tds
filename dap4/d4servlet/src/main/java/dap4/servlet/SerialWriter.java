@@ -30,9 +30,9 @@ import java.nio.ByteOrder;
 
 public class SerialWriter {
 
-  static public boolean DEBUG = false; // make it mutable
-  static public boolean DUMPDATA = false; // make it mutable
-  static public boolean DUMPCSUM = false; // make it mutable
+  public static boolean DEBUG = false; // make it mutable
+  public static boolean DUMPDATA = false; // make it mutable
+  public static boolean DUMPCSUM = false; // make it mutable
 
   //////////////////////////////////////////////////
   // Constants
@@ -106,7 +106,7 @@ public class SerialWriter {
    *         platform's native encoding.
    */
 
-  static public ByteBuffer encodeArray(DapType vtype, Object values, ByteOrder order) throws IOException {
+  public static ByteBuffer encodeArray(DapType vtype, Object values, ByteOrder order) throws IOException {
     TypeSort atomtype = vtype.getAtomicType();
     assert values != null && values.getClass().isArray();
     int count = Array.getLength(values);

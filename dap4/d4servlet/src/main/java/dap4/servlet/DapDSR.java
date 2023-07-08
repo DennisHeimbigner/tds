@@ -38,9 +38,9 @@ public class DapDSR {
   // Static Variables
 
   static private String dap4TestServerPropName = "d4ts";
-  static public String dap4TestServer = null;; // mutable
-  static protected String servletprefix = null;
-  static protected String servletsuffix = null;
+  public static String dap4TestServer = null;; // mutable
+  protected static String servletprefix = null;
+  protected static String servletsuffix = null;
 
   static {
     String d4ts = System.getProperty(dap4TestServerPropName);

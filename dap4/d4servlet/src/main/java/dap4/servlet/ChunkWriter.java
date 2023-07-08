@@ -25,9 +25,9 @@ public class ChunkWriter extends OutputStream {
   //////////////////////////////////////////////////
   // Constants
 
-  static public boolean DEBUG = false;
-  static public boolean DUMPDATA = false;
-  static public boolean DEBUGHEADER = false;
+  public static boolean DEBUG = false;
+  public static boolean DUMPDATA = false;
+  public static boolean DEBUGHEADER = false;
 
   static final int MAXCHUNKSIZE = 0xFFFF;
 
@@ -35,7 +35,7 @@ public class ChunkWriter extends OutputStream {
 
   static final int SIZEOF_INTEGER = 4;
 
-  static public final byte[] CRLF8 = DapUtil.extract(DapUtil.UTF8.encode(DapUtil.CRLF));
+  public static final byte[] CRLF8 = DapUtil.extract(DapUtil.UTF8.encode(DapUtil.CRLF));
 
   //////////////////////////////////////////////////
   // Type declarations
@@ -279,7 +279,7 @@ public class ChunkWriter extends OutputStream {
   }
 
 
-  static public void chunkheader(int length, int flags, ByteBuffer hdrbuf) throws DapException {
+  public static void chunkheader(int length, int flags, ByteBuffer hdrbuf) throws DapException {
     if (length > MAXCHUNKSIZE || length < 0)
       throw new DapException("Illegal chunk size: " + length);
     int hdr = ((flags << 24) | length);

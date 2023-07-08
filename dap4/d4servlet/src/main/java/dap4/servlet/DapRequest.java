@@ -31,8 +31,8 @@ public class DapRequest {
 
   static final boolean DEBUG = false;
 
-  static protected final String WEBINFPATH = "WEB-INF";
-  static protected final String RESOURCEDIRNAME = "resources";
+  protected static final String WEBINFPATH = "WEB-INF";
+  protected static final String RESOURCEDIRNAME = "resources";
 
   //////////////////////////////////////////////////
   // Instance variables

@@ -25,22 +25,22 @@ abstract public class DapController extends HttpServlet {
   //////////////////////////////////////////////////
   // Constants
 
-  static public boolean DEBUG = false;
+  public static boolean DEBUG = false;
 
-  static protected final String BIG_ENDIAN = "Big-Endian";
-  static protected final String LITTLE_ENDIAN = "Little-Endian";
+  protected static final String BIG_ENDIAN = "Big-Endian";
+  protected static final String LITTLE_ENDIAN = "Little-Endian";
 
   // Is this machine big endian?
-  static protected boolean IS_BIG_ENDIAN = (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
+  protected static boolean IS_BIG_ENDIAN = (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
 
-  static protected final String DMREXT = ".dmr";
-  static protected final String DATAEXT = ".dap";
-  static protected final String DSREXT = ".dsr";
-  static protected final String[] ENDINGS = {DMREXT, DATAEXT, DSREXT};
+  protected static final String DMREXT = ".dmr";
+  protected static final String DATAEXT = ".dap";
+  protected static final String DSREXT = ".dsr";
+  protected static final String[] ENDINGS = {DMREXT, DATAEXT, DSREXT};
 
-  static protected final String FAVICON = "favicon.ico"; // relative to resource dir
+  protected static final String FAVICON = "favicon.ico"; // relative to resource dir
 
-  static public final long DEFAULTBINARYWRITELIMIT = 100 * 1000000; // in bytes
+  public static final long DEFAULTBINARYWRITELIMIT = 100 * 1000000; // in bytes
 
   //////////////////////////////////////////////////
   // static variables
@@ -48,7 +48,7 @@ abstract public class DapController extends HttpServlet {
   //////////////////////////////////////////////////
   // Static accessors
 
-  static public String printDMR(DapDataset dmr) {
+  public static String printDMR(DapDataset dmr) {
     StringWriter sw = new StringWriter();
     PrintWriter pw = new PrintWriter(sw);
     DMRPrinter printer = new DMRPrinter(dmr, pw);

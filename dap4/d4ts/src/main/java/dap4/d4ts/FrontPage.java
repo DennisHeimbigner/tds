@@ -45,7 +45,7 @@ public class FrontPage {
   // Define the file sources of interest
   static final protected FileSource[] SOURCES = new FileSource[] {new FileSource(".nc", "netCDF")};
 
-  static public class Root {
+  public static class Root {
     public String prefix;
 
     public String dir;
@@ -71,7 +71,7 @@ public class FrontPage {
   }
 
   private static String dap4TestServerPropName = "d4ts";
-  static public String dap4TestServer = null;; // mutable
+  public static String dap4TestServer = null;; // mutable
 
   static {
     String d4ts = System.getProperty(dap4TestServerPropName);
@@ -253,7 +253,7 @@ public class FrontPage {
     }
   }
 
-  static public void sendtrace(DapRequest drq, Exception e) {
+  public static void sendtrace(DapRequest drq, Exception e) {
     try {
       StringWriter sw = new StringWriter();
       PrintWriter pw = new PrintWriter(sw);
@@ -266,7 +266,7 @@ public class FrontPage {
     }
   }
 
-  static public void sendtext(DapRequest drq, String s) {
+  public static void sendtext(DapRequest drq, String s) {
     try {
       // s = s.replace("<", "&lt;");
       // s = s.replace(">", "&gt;");
